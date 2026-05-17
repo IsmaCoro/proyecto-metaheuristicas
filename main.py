@@ -12,7 +12,7 @@ app = Flask(__name__)
 app.secret_key = 'clave_secreta_proyecto_final_2026'
 
 # Configuración
-CLAVE_ADMIN = "admin"
+CLAVE_ADMIN = "25052023"
 
 TIPOS_CPU = [4, 8, 16, 32]
 N_SERVIDORES = 6

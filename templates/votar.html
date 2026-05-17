@@ -9,13 +9,12 @@
 <body>
     <div class="pagina-votar">
         <header class="encabezado">
-            <h1>☁️ <span class="acento">Proyecto Final</span></h1>
+            <h1><span class="acento">Proyecto Final</span></h1>
             <p>Agrega tareas al servidor que quieras</p>
         </header>
 
-        <!-- Aviso de pausa -->
         <div class="aviso-pausa" id="aviso-pausa" style="display:none">
-            ⏸️ Recepción de tareas pausada — espera al administrador
+            Recepcion de tareas pausada — espera al administrador
         </div>
 
         <div class="grid-servidores" id="grid"></div>
@@ -24,9 +23,8 @@
             Total de tareas: <strong id="total">0</strong>
         </div>
 
-        <!-- Cooldown visible -->
         <div class="cooldown-bar" id="cooldown-bar" style="display:none">
-            ⏳ Espera <strong id="cooldown-seg">10</strong>s para agregar otra tarea
+            Espera <strong id="cooldown-seg">10</strong>s para agregar otra tarea
         </div>
     </div>
 
@@ -50,7 +48,6 @@
             g.innerHTML = '';
             let total = 0;
 
-            // Mostrar/ocultar aviso de pausa
             document.getElementById('aviso-pausa').style.display = pausado ? 'block' : 'none';
 
             for (let j = 0; j < n; j++) {
@@ -58,9 +55,9 @@
                 const pct = cap > 0 ? (t / cap) * 100 : 0;
                 total += t;
 
-                let color = '#56D68C', bar = '#2d6a4f', ico = t === 0 ? '🖥️' : '🟢';
-                if (pct > 85) { color = '#E06C75'; bar = '#c1121f'; ico = '🔴'; }
-                else if (pct > 60) { color = '#D19A66'; bar = '#e09f3e'; ico = '🟡'; }
+                let color = '#56D68C', bar = '#2d6a4f';
+                if (pct > 85) { color = '#E06C75'; bar = '#c1121f'; }
+                else if (pct > 60) { color = '#D19A66'; bar = '#e09f3e'; }
 
                 const deshabilitado = enCooldown || pausado;
 
@@ -68,7 +65,6 @@
                 div.className = 'srv-card' + (pct > 100 ? ' saturado' : '');
                 div.id = `srv-${j}`;
                 div.innerHTML = `
-                    <div class="srv-icono">${ico}</div>
                     <div class="srv-nombre">S${j}</div>
                     <div class="srv-info">${cap} CPUs</div>
                     <div class="srv-conteo" style="color:${color}">${t}</div>
@@ -76,7 +72,7 @@
                     <button class="btn-agregar${deshabilitado ? ' btn-disabled' : ''}" 
                             onclick="agregar(${j})" 
                             ${deshabilitado ? 'disabled' : ''}>
-                        ${pausado ? '⏸️ Pausado' : (enCooldown ? '⏳ Espera...' : '+ Tarea')}
+                        ${pausado ? 'Pausado' : (enCooldown ? 'Espera...' : '+ Tarea')}
                     </button>
                 `;
                 g.appendChild(div);
@@ -87,15 +83,12 @@
         async function agregar(j) {
             if (enCooldown || pausado) return;
 
-            // Animación
             const card = document.getElementById(`srv-${j}`);
             card.classList.add('flash');
             setTimeout(() => card.classList.remove('flash'), 400);
 
-            // Actualizar localmente
             tareas[j]++;
 
-            // Cooldown solo si está activo
             if (cooldownActivo) {
                 enCooldown = true;
                 render();
@@ -119,11 +112,9 @@
                 render();
             }
 
-            // Enviar al servidor
             await fetch(`/agregar/${j}`, { method: 'POST' });
         }
 
-        // Sincronizar cada 3 segundos
         setInterval(async () => {
             const r = await fetch('/estado');
             const d = await r.json();
