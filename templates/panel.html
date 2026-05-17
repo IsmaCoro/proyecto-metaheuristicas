@@ -43,6 +43,9 @@
                 <div class="metrica-caja"><div class="etiqueta">Mejor algo.</div><div id="m-alg"></div></div>
                 <div class="metrica-caja"><div class="etiqueta">Fitness</div><div id="m-fit"></div></div>
                 <div class="metrica-caja"><div class="etiqueta">Greedy (baseline)</div><div id="m-gre"></div></div>
+                <div class="metrica-caja"><div class="etiqueta">Tiempo GA</div><div id="m-tga"></div></div>
+                <div class="metrica-caja"><div class="etiqueta">Tiempo ACO</div><div id="m-taco"></div></div>
+                <div class="metrica-caja"><div class="etiqueta">Tiempo Hibrido</div><div id="m-thib"></div></div>
             </div>
 
             <hr class="separador">
@@ -71,7 +74,7 @@
 
         <div class="vacio" id="vacio">
             <div class="ico" style="font-size:2.5rem;color:#555">&#9729;</div>
-            <p>Esperando que tus companeros agreguen tareas...</p>
+            <p>Esperando...</p>
         </div>
     </div>
 
@@ -208,6 +211,9 @@
         document.getElementById('m-alg').innerHTML=`<span class="val-despues">${d.mejor_algoritmo}</span>`;
         document.getElementById('m-fit').innerHTML=`<span class="val-antes">${a.fitness}</span> <span class="flecha">&rarr;</span> <span class="val-despues">${dp.fitness}</span>`;
         document.getElementById('m-gre').innerHTML=`<span style="color:#D19A66;font-family:'JetBrains Mono';font-size:1rem">${d.greedy.fitness}</span>`;
+        document.getElementById('m-tga').innerHTML=`<span style="color:#E06C75;font-family:'JetBrains Mono';font-size:1rem">${d.algoritmos.GA.tiempo}s</span>`;
+        document.getElementById('m-taco').innerHTML=`<span style="color:#56B6C2;font-family:'JetBrains Mono';font-size:1rem">${d.algoritmos.ACO.tiempo}s</span>`;
+        document.getElementById('m-thib').innerHTML=`<span style="color:#667eea;font-family:'JetBrains Mono';font-size:1rem">${d.algoritmos['Híbrido'].tiempo}s</span>`;
         grafCarga(d); grafConv(d.algoritmos);
     }
 
