@@ -32,12 +32,15 @@
     function acceder() {
         const clave = document.getElementById('clave').value;
         if (!clave) return false;
-        // Verificar contra el servidor
-        fetch(`/verificar?clave=${encodeURIComponent(clave)}`)
+        fetch('/verificar', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({clave: clave})
+        })
             .then(r => r.json())
             .then(d => {
                 if (d.ok) {
-                    window.location.href = `/panel?clave=${encodeURIComponent(clave)}`;
+                    window.location.href = '/panel';
                 } else {
                     document.getElementById('error').style.display = 'block';
                     setTimeout(() => document.getElementById('error').style.display = 'none', 2000);

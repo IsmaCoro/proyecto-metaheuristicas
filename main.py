@@ -1,4 +1,4 @@
-from flask import Flask, render_template, jsonify, request, redirect, url_for
+from flask import Flask, render_template, jsonify, request, redirect, session
 from algoritmos.problema_nube import ProblemaCloud
 from algoritmos.genetico import AlgoritmoGenetico
 from algoritmos.colonia_hormigas import ColoniaHormigas
@@ -9,12 +9,9 @@ from itertools import combinations
 import threading
 
 app = Flask(__name__)
+app.secret_key = 'clave_secreta_proyecto_final_2026'
 
-# ══════════════════════════════════════════
-#  CONFIGURACIÓN
-# ══════════════════════════════════════════
-
-# Clave para acceder al panel admin (cámbiala si quieres)
+# Configuración
 CLAVE_ADMIN = "admin"
 
 TIPOS_CPU = [4, 8, 16, 32]
@@ -24,7 +21,7 @@ estado = {
     "tareas": [0] * N_SERVIDORES,
     "capacidades": [TIPOS_CPU[i % len(TIPOS_CPU)] for i in range(N_SERVIDORES)],
     "pausado": False,
-    "cooldown": True,  # True = cooldown de 10s activo
+    "cooldown": True,
 }
 lock = threading.Lock()
 
@@ -41,15 +38,19 @@ def votar():
     return render_template('votar.html')
 
 
-@app.route('/verificar')
+@app.route('/verificar', methods=['POST'])
 def verificar():
-    ok = request.args.get('clave') == CLAVE_ADMIN
-    return jsonify({"ok": ok})
+    datos = request.get_json()
+    clave = datos.get('clave', '') if datos else ''
+    if clave == CLAVE_ADMIN:
+        session['admin'] = True
+        return jsonify({"ok": True})
+    return jsonify({"ok": False})
 
 
 @app.route('/panel')
 def panel():
-    if request.args.get('clave') != CLAVE_ADMIN:
+    if not session.get('admin'):
         return redirect('/')
     return render_template('panel.html')
 
