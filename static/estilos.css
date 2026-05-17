@@ -1,0 +1,171 @@
+/* ══════════════════════════════════════════════════════════════
+   estilos.css — Tema oscuro para OptiCloud
+   ══════════════════════════════════════════════════════════════ */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'Inter', sans-serif; background: #0E1117; color: #E0E0E0; min-height: 100vh; }
+
+/* ── Encabezado ── */
+.encabezado { text-align: center; padding: 2rem 1rem 1rem; }
+.encabezado h1 { font-size: 2rem; font-weight: 700; }
+.acento { background: linear-gradient(135deg, #667eea, #764ba2); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+.encabezado p { color: #666; font-size: 0.95rem; margin-top: 0.3rem; }
+
+/* ── Contenedor ── */
+.seccion { max-width: 1100px; margin: 0 auto; padding: 0 1.5rem; }
+.pagina-votar { max-width: 900px; margin: 0 auto; padding: 0 1rem; }
+
+/* ── Títulos de sección ── */
+.sec-titulo { text-align: center; padding: 0.6rem; margin: 1.5rem 0 1rem; font-size: 1rem; font-weight: 600; border-radius: 8px; }
+.sec-titulo.antes { background: rgba(224,108,117,0.1); border: 1px solid rgba(224,108,117,0.25); color: #E06C75; }
+.sec-titulo.despues { background: rgba(86,214,140,0.1); border: 1px solid rgba(86,214,140,0.25); color: #56D68C; }
+
+/* ── Grid de servidores ── */
+.grid-servidores { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 0.8rem; margin: 1rem 0; }
+
+/* ── Tarjeta de servidor (común) ── */
+.srv-card, .servidor {
+    background: #13161B; border: 1px solid #2A2D35; border-radius: 12px;
+    padding: 1rem 0.8rem; text-align: center; transition: all 0.3s ease;
+}
+.srv-card:hover, .servidor:hover { border-color: #667eea; transform: translateY(-2px); }
+.srv-card.saturado, .servidor.saturado { border-color: #E06C75; box-shadow: 0 0 20px rgba(224,108,117,0.15); }
+.servidor.ok { border-color: #56D68C; box-shadow: 0 0 15px rgba(86,214,140,0.1); }
+.srv-card.flash { animation: pulso 0.4s ease; }
+@keyframes pulso { 50% { transform: scale(1.05); box-shadow: 0 0 25px rgba(102,126,234,0.3); } }
+
+.srv-icono, .servidor .icono { font-size: 2.2rem; }
+.srv-nombre, .servidor .nombre { font-weight: 700; font-size: 1rem; color: #CCC; margin: 0.2rem 0; }
+.srv-info, .servidor .info { font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; color: #666; }
+.srv-conteo, .servidor .conteo { font-family: 'JetBrains Mono', monospace; font-size: 1.5rem; font-weight: 700; margin: 0.3rem 0; }
+
+/* ── Barra de carga ── */
+.barra-fondo { background: #0D0F12; border-radius: 5px; height: 16px; overflow: hidden; margin: 0.3rem 0; }
+.barra-relleno { height: 100%; border-radius: 5px; transition: width 0.5s ease; }
+
+/* ── Botón agregar tarea (compañeros) ── */
+.btn-agregar {
+    width: 100%; padding: 0.6rem; border: none; border-radius: 10px; margin-top: 0.5rem;
+    background: linear-gradient(135deg, #667eea, #764ba2); color: white;
+    font-size: 1.2rem; font-weight: 700; cursor: pointer; transition: all 0.2s;
+}
+.btn-agregar:hover { transform: translateY(-1px); box-shadow: 0 4px 15px rgba(102,126,234,0.4); }
+.btn-agregar:active { transform: scale(0.96); }
+
+/* ── Total bar ── */
+.total-bar { text-align: center; margin-top: 1.5rem; color: #888; font-size: 0.9rem; }
+.total-bar strong { color: #667eea; font-family: 'JetBrains Mono', monospace; font-size: 1.2rem; }
+
+/* ── Botones de acción (admin) ── */
+.acciones { display: flex; gap: 0.6rem; justify-content: center; margin: 1rem 0; flex-wrap: wrap; }
+.btn-accion {
+    padding: 0.5rem 1rem; border: 1px solid #2A2D35; border-radius: 8px;
+    background: #13161B; color: #CCC; font-size: 0.85rem; cursor: pointer; transition: all 0.2s;
+}
+.btn-accion:hover { background: #1A1D23; border-color: #667eea; color: #fff; }
+
+/* ── Métricas ── */
+.metricas-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 0.8rem; margin: 1rem 0; }
+.metrica-caja { background: #13161B; border: 1px solid #2A2D35; border-radius: 10px; padding: 0.8rem; text-align: center; }
+.metrica-caja .etiqueta { color: #777; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1px; }
+.val-antes { color: #E06C75; font-family: 'JetBrains Mono', monospace; font-size: 1rem; font-weight: 600; }
+.val-despues { color: #56D68C; font-family: 'JetBrains Mono', monospace; font-size: 1rem; font-weight: 600; }
+.flecha { color: #555; font-size: 0.8rem; }
+
+/* ── Separador ── */
+.separador { border: none; border-top: 1px solid #1E2028; margin: 1.5rem 0; }
+
+/* ── Spinner ── */
+.cargando { text-align: center; padding: 2rem; color: #667eea; display: none; }
+.cargando.visible { display: block; }
+.spinner { display: inline-block; width: 22px; height: 22px; border: 3px solid #2A2D35; border-top: 3px solid #667eea; border-radius: 50%; animation: spin 0.8s linear infinite; vertical-align: middle; margin-right: 0.5rem; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── Pestañas ── */
+.tabs { display: flex; gap: 0.3rem; margin: 1rem 0 0.5rem; border-bottom: 1px solid #2A2D35; }
+.tab-btn { padding: 0.5rem 1rem; background: transparent; border: none; color: #777; font-size: 0.85rem; cursor: pointer; border-bottom: 2px solid transparent; transition: all 0.2s; }
+.tab-btn:hover { color: #CCC; }
+.tab-btn.activo { color: #667eea; border-bottom-color: #667eea; }
+.tab-contenido { display: none; padding: 1rem 0; }
+.tab-contenido.activo { display: block; }
+
+/* ── Gráficas ── */
+.grafica-caja { background: #13161B; border: 1px solid #2A2D35; border-radius: 10px; padding: 1rem; margin: 0.5rem 0; }
+
+/* ── Tablas ── */
+.tabla { width: 100%; border-collapse: collapse; margin: 0.5rem 0; }
+.tabla th { background: #1A1D23; color: #999; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px; padding: 0.6rem; text-align: left; border-bottom: 1px solid #2A2D35; }
+.tabla td { padding: 0.5rem 0.6rem; border-bottom: 1px solid #1E2028; font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; color: #CCC; }
+.tabla tr:hover td { background: #1A1D23; }
+
+/* ── Mensaje vacío ── */
+.vacio { text-align: center; padding: 3rem; color: #555; }
+.vacio .ico { font-size: 3.5rem; margin-bottom: 0.5rem; }
+
+/* ── Aviso de pausa (compañeros) ── */
+.aviso-pausa {
+    text-align: center; padding: 0.8rem; margin: 0.5rem 0 1rem;
+    background: rgba(224,108,117,0.15); border: 1px solid rgba(224,108,117,0.3);
+    border-radius: 8px; color: #E06C75; font-weight: 600; font-size: 0.95rem;
+    animation: parpadeo 2s ease-in-out infinite;
+}
+@keyframes parpadeo { 50% { opacity: 0.6; } }
+
+/* ── Botón deshabilitado ── */
+.btn-agregar.btn-disabled {
+    background: #2A2D35 !important; color: #666 !important;
+    cursor: not-allowed; box-shadow: none !important; transform: none !important;
+}
+
+/* ── Cooldown bar ── */
+.cooldown-bar {
+    text-align: center; margin-top: 1rem; padding: 0.5rem;
+    color: #D19A66; font-size: 0.85rem;
+}
+
+/* ── Pantalla de inicio ── */
+.pagina-inicio {
+    display: flex; justify-content: center; align-items: center;
+    min-height: 100vh; padding: 1rem;
+}
+.inicio-card {
+    background: #13161B; border: 1px solid #2A2D35; border-radius: 16px;
+    padding: 3rem 2.5rem; text-align: center; max-width: 420px; width: 100%;
+    box-shadow: 0 8px 40px rgba(0,0,0,0.4);
+}
+.inicio-icono { font-size: 4rem; margin-bottom: 0.5rem; }
+.inicio-card h1 {
+    font-size: 1.8rem; font-weight: 700; margin-bottom: 0.3rem;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+}
+.inicio-sub { color: #CCC; font-size: 1rem; margin-bottom: 0.2rem; }
+.inicio-desc { color: #666; font-size: 0.85rem; margin-bottom: 2rem; }
+.btn-inicio {
+    display: block; width: 100%; padding: 0.85rem; border: none; border-radius: 10px;
+    font-size: 1.1rem; font-weight: 600; cursor: pointer; transition: all 0.2s;
+    text-decoration: none; text-align: center;
+}
+.btn-continuar {
+    background: linear-gradient(135deg, #667eea, #764ba2); color: white;
+    margin-bottom: 1.5rem;
+}
+.btn-continuar:hover { transform: translateY(-2px); box-shadow: 0 4px 20px rgba(102,126,234,0.4); }
+.btn-admin {
+    background: #1A1D23; color: #CCC; border: 1px solid #2A2D35;
+}
+.btn-admin:hover { border-color: #667eea; color: #fff; }
+.inicio-sep {
+    position: relative; text-align: center; margin: 1rem 0;
+    border-top: 1px solid #2A2D35; padding-top: 1.2rem;
+}
+.inicio-sep span { color: #555; font-size: 0.8rem; }
+.inicio-form { display: flex; flex-direction: column; gap: 0.6rem; margin-top: 0.8rem; }
+.input-clave {
+    width: 100%; padding: 0.7rem; border: 1px solid #2A2D35; border-radius: 8px;
+    background: #0E1117; color: #E0E0E0; font-size: 0.95rem; text-align: center;
+    outline: none; transition: border-color 0.2s;
+}
+.input-clave:focus { border-color: #667eea; }
+.inicio-error { color: #E06C75; font-size: 0.85rem; margin-top: 0.5rem; }

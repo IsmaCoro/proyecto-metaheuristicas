@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Proyecto Final — Algoritmos Metaheurísticos</title>
+    <link rel="stylesheet" href="/static/estilos.css">
+</head>
+<body>
+    <div class="pagina-inicio">
+        <div class="inicio-card">
+            <div class="inicio-icono">&#9729;</div>
+            <h1>Proyecto Final</h1>
+            <p class="inicio-sub">Asignación de Recursos en la Nube</p>
+            <p class="inicio-desc">Algoritmos Metaheurísticos — GA, ACO e Híbrido</p>
+
+            <a href="/votar" class="btn-inicio btn-continuar">Continuar</a>
+
+            <div class="inicio-sep">
+                <span>Panel de administración</span>
+            </div>
+
+            <form class="inicio-form" onsubmit="return acceder()">
+                <input type="password" id="clave" class="input-clave" placeholder="Contraseña" autocomplete="off">
+                <button type="submit" class="btn-inicio btn-admin">Acceder</button>
+            </form>
+            <p class="inicio-error" id="error" style="display:none">Contraseña incorrecta</p>
+        </div>
+    </div>
+
+    <script>
+    function acceder() {
+        const clave = document.getElementById('clave').value;
+        if (!clave) return false;
+        // Verificar contra el servidor
+        fetch(`/verificar?clave=${encodeURIComponent(clave)}`)
+            .then(r => r.json())
+            .then(d => {
+                if (d.ok) {
+                    window.location.href = `/panel?clave=${encodeURIComponent(clave)}`;
+                } else {
+                    document.getElementById('error').style.display = 'block';
+                    setTimeout(() => document.getElementById('error').style.display = 'none', 2000);
+                }
+            });
+        return false;
+    }
+    </script>
+</body>
+</html>

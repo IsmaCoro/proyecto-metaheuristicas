@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Proyecto Final — Agrega tareas</title>
+    <link rel="stylesheet" href="/static/estilos.css">
+</head>
+<body>
+    <div class="pagina-votar">
+        <header class="encabezado">
+            <h1>☁️ <span class="acento">Proyecto Final</span></h1>
+            <p>Agrega tareas al servidor que quieras</p>
+        </header>
+
+        <!-- Aviso de pausa -->
+        <div class="aviso-pausa" id="aviso-pausa" style="display:none">
+            ⏸️ Recepción de tareas pausada — espera al administrador
+        </div>
+
+        <div class="grid-servidores" id="grid"></div>
+
+        <div class="total-bar">
+            Total de tareas: <strong id="total">0</strong>
+        </div>
+
+        <!-- Cooldown visible -->
+        <div class="cooldown-bar" id="cooldown-bar" style="display:none">
+            ⏳ Espera <strong id="cooldown-seg">10</strong>s para agregar otra tarea
+        </div>
+    </div>
+
+    <script>
+        let tareas = [], caps = [], n = 0;
+        let enCooldown = false;
+        let pausado = false;
+        let cooldownActivo = true;
+
+        async function cargar() {
+            const r = await fetch('/estado');
+            const d = await r.json();
+            tareas = d.tareas; caps = d.capacidades; n = tareas.length;
+            pausado = d.pausado;
+            cooldownActivo = d.cooldown;
+            render();
+        }
+
+        function render() {
+            const g = document.getElementById('grid');
+            g.innerHTML = '';
+            let total = 0;
+
+            // Mostrar/ocultar aviso de pausa
+            document.getElementById('aviso-pausa').style.display = pausado ? 'block' : 'none';
+
+            for (let j = 0; j < n; j++) {
+                const t = tareas[j], cap = caps[j];
+                const pct = cap > 0 ? (t / cap) * 100 : 0;
+                total += t;
+
+                let color = '#56D68C', bar = '#2d6a4f', ico = t === 0 ? '🖥️' : '🟢';
+                if (pct > 85) { color = '#E06C75'; bar = '#c1121f'; ico = '🔴'; }
+                else if (pct > 60) { color = '#D19A66'; bar = '#e09f3e'; ico = '🟡'; }
+
+                const deshabilitado = enCooldown || pausado;
+
+                const div = document.createElement('div');
+                div.className = 'srv-card' + (pct > 100 ? ' saturado' : '');
+                div.id = `srv-${j}`;
+                div.innerHTML = `
+                    <div class="srv-icono">${ico}</div>
+                    <div class="srv-nombre">S${j}</div>
+                    <div class="srv-info">${cap} CPUs</div>
+                    <div class="srv-conteo" style="color:${color}">${t}</div>
+                    <div class="barra-fondo"><div class="barra-relleno" style="width:${Math.min(pct,100)}%;background:${bar}"></div></div>
+                    <button class="btn-agregar${deshabilitado ? ' btn-disabled' : ''}" 
+                            onclick="agregar(${j})" 
+                            ${deshabilitado ? 'disabled' : ''}>
+                        ${pausado ? '⏸️ Pausado' : (enCooldown ? '⏳ Espera...' : '+ Tarea')}
+                    </button>
+                `;
+                g.appendChild(div);
+            }
+            document.getElementById('total').textContent = total;
+        }
+
+        async function agregar(j) {
+            if (enCooldown || pausado) return;
+
+            // Animación
+            const card = document.getElementById(`srv-${j}`);
+            card.classList.add('flash');
+            setTimeout(() => card.classList.remove('flash'), 400);
+
+            // Actualizar localmente
+            tareas[j]++;
+
+            // Cooldown solo si está activo
+            if (cooldownActivo) {
+                enCooldown = true;
+                render();
+
+                const cdBar = document.getElementById('cooldown-bar');
+                cdBar.style.display = 'block';
+                let segs = 10;
+                document.getElementById('cooldown-seg').textContent = segs;
+
+                const timer = setInterval(() => {
+                    segs--;
+                    document.getElementById('cooldown-seg').textContent = segs;
+                    if (segs <= 0) {
+                        clearInterval(timer);
+                        enCooldown = false;
+                        cdBar.style.display = 'none';
+                        render();
+                    }
+                }, 1000);
+            } else {
+                render();
+            }
+
+            // Enviar al servidor
+            await fetch(`/agregar/${j}`, { method: 'POST' });
+        }
+
+        // Sincronizar cada 3 segundos
+        setInterval(async () => {
+            const r = await fetch('/estado');
+            const d = await r.json();
+            tareas = d.tareas;
+            pausado = d.pausado;
+            cooldownActivo = d.cooldown;
+            render();
+        }, 3000);
+
+        cargar();
+    </script>
+</body>
+</html>

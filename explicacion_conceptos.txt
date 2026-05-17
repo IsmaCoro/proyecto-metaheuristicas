@@ -1,0 +1,94 @@
+EXPLICACIÓN DE CONCEPTOS — PROYECTO FINAL: ALGORITMOS METAHEURÍSTICOS
+======================================================================
+
+1. FITNESS (la calificación)
+----------------------------
+Imagina que le pones calificación a cómo distribuiste las tareas. MENOR = MEJOR.
+
+  Fitness = 0.4 × Balance + 0.3 × Energía + 0.3 × Tiempo + Penalización
+
+  Balance     → ¿Están parejos los servidores? Si uno tiene 100% y otro 0%, está mal.
+  Energía     → ¿Cuánta luz gasta el datacenter? Menos servidores encendidos = menos watts.
+  Tiempo máx  → ¿Cuál es el servidor más lento? El más saturado define el cuello de botella.
+  Penalización → ¿Algún servidor rebasó su límite de CPU o RAM? Castigo enorme.
+
+  Ejemplo:
+    Tu distribución:      S0=12, S1=0, S2=0, S3=0  → Fitness = 85 (todo en uno, horrible)
+    Después de optimizar: S0=3, S1=3, S2=3, S3=3   → Fitness = 8  (balanceado, eficiente)
+
+
+2. CONVERGENCIA (la gráfica de líneas)
+---------------------------------------
+Muestra cómo mejora cada algoritmo conforme avanzan las iteraciones.
+
+  - GA (rojo): baja rápido al inicio pero se estanca. Buena exploración inicial.
+  - ACO (azul): baja más lento pero de forma constante. Las feromonas guían mejor.
+  - Híbrido (morado): combina ambos y llega al fitness más bajo.
+
+  Qué decirle al profe:
+    "El Híbrido converge a un valor más bajo porque combina la exploración del GA
+     con la intensificación del ACO, además de una búsqueda local periódica."
+
+
+3. WILCOXON (la prueba estadística)
+------------------------------------
+El profe va a preguntar: "¿Cómo sabes que el Híbrido es REALMENTE mejor y no fue suerte?"
+
+Respuesta: corremos cada algoritmo 10 veces con diferentes semillas y comparamos.
+
+  GA:      [23, 25, 22, 28, 24, 26, 21, 27, 23, 25]   Media = 24.4
+  ACO:     [19, 21, 20, 22, 18, 20, 19, 21, 20, 19]   Media = 19.9
+  Híbrido: [12, 14, 11, 13, 12, 15, 11, 13, 12, 14]   Media = 12.7  ← mejor
+
+La prueba de Wilcoxon compara par a par:
+  - GA vs ACO:     p=0.003  → Significativo (p < 0.05). ACO es mejor que GA.
+  - GA vs Híbrido: p=0.001  → Significativo. Híbrido es mejor que GA.
+  - ACO vs Híbrido: p=0.008 → Significativo. Híbrido es mejor que ACO.
+
+  Qué decirle al profe:
+    "Con p-valor menor a 0.05, rechazamos la hipótesis nula: la diferencia
+     entre algoritmos ES estadísticamente significativa, no es producto del azar."
+
+
+4. SENSIBILIDAD (las dos gráficas)
+-----------------------------------
+Responde: "¿Qué pasa si cambio los parámetros del algoritmo?"
+
+  Gráfica 1 — Fitness vs Tamaño de población:
+    Con 20 individuos el fitness es alto (malo).
+    Con 60 mejora bastante.
+    Con 80 y 100 ya no mejora mucho → 60 es suficiente.
+
+  Gráfica 2 — Fitness vs Iteraciones:
+    Con 30 iteraciones no alcanza a converger.
+    Con 100 ya se estabiliza.
+    Con 150 y 200 casi no hay cambio → 150 es el punto óptimo.
+
+  Qué decirle al profe:
+    "El análisis de sensibilidad muestra que 60 individuos y 150 iteraciones
+     es el punto de equilibrio entre calidad de solución y costo computacional."
+
+
+5. GRÁFICA DE CARGA (barras antes vs después)
+----------------------------------------------
+Compara la distribución del usuario contra la del algoritmo:
+
+  Antes (rojo):
+    S0: 120% (SATURADO), S1: 12%, S2: 0%, S3: 88%
+
+  Optimizado (verde):
+    S0: 25%, S1: 30%, S2: 28%, S3: 17%
+
+  Qué decirle al profe:
+    "El usuario saturó el servidor S0 al 120%, violando las restricciones de capacidad.
+     El algoritmo híbrido redistribuyó las tareas equitativamente, eliminando la
+     saturación y reduciendo el consumo energético."
+
+
+RESUMEN RÁPIDO PARA LA PRESENTACIÓN
+====================================
+  Fitness      → "Menor fitness = mejor distribución"
+  Convergencia → "El Híbrido converge más rápido y a mejor valor"
+  Wilcoxon     → "Con p < 0.05, la diferencia es estadísticamente significativa"
+  Sensibilidad → "60 individuos y 150 iteraciones son los parámetros óptimos"
+  Carga        → "De 120% saturado a 25% balanceado"
