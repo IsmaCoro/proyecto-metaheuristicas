@@ -156,11 +156,24 @@ def optimizar():
     # Greedy determinista
     met_greedy = problema.evaluar(problema.asignacion_greedy())
 
+    # Escalar iteraciones segun cantidad de tareas para evitar timeout en Render
+    if total <= 30:
+        iters, pob_ga, pob_hyb = 150, 60, 80
+    elif total <= 60:
+        iters, pob_ga, pob_hyb = 100, 50, 60
+    elif total <= 100:
+        iters, pob_ga, pob_hyb = 60, 40, 50
+    else:
+        iters, pob_ga, pob_hyb = 40, 30, 40
+
     # Tres metaheuristicas
-    res = {}
-    res['GA'] = AlgoritmoGenetico(problema, tam_poblacion=60, generaciones=150).ejecutar()
-    res['ACO'] = ColoniaHormigas(problema, n_hormigas=20, n_iteraciones=150).ejecutar()
-    res['Híbrido'] = HibridoGAACO(problema, tam_poblacion=80, n_iteraciones=150).ejecutar()
+    try:
+        res = {}
+        res['GA'] = AlgoritmoGenetico(problema, tam_poblacion=pob_ga, generaciones=iters).ejecutar()
+        res['ACO'] = ColoniaHormigas(problema, n_hormigas=max(5, pob_ga // 3), n_iteraciones=iters).ejecutar()
+        res['Híbrido'] = HibridoGAACO(problema, tam_poblacion=pob_hyb, n_iteraciones=iters).ejecutar()
+    except Exception as e:
+        return jsonify({"error": f"Error en optimización: {str(e)}"}), 500
 
     mejor_k = min(res, key=lambda k: res[k]['fitness'])
     mejor = res[mejor_k]
@@ -226,14 +239,27 @@ def analisis():
     n = len(caps)
     n_corridas = 10
 
+    # Escalar segun cantidad de tareas para evitar timeout en Render
+    if total <= 30:
+        iters_a, pob_a = 100, 60
+    elif total <= 60:
+        iters_a, pob_a = 50, 40
+    elif total <= 100:
+        iters_a, pob_a = 30, 30
+    else:
+        iters_a, pob_a = 20, 20
+
     # Ejecutar cada algoritmo n_corridas veces con semillas distintas
-    todas = {'GA': [], 'ACO': [], 'Híbrido': []}
-    for c in range(n_corridas):
-        p = crear_problema(caps, total)
-        p.semilla = 42 + c + 1
-        todas['GA'].append(AlgoritmoGenetico(p, generaciones=100).ejecutar()['fitness'])
-        todas['ACO'].append(ColoniaHormigas(p, n_iteraciones=100).ejecutar()['fitness'])
-        todas['Híbrido'].append(HibridoGAACO(p, n_iteraciones=100).ejecutar()['fitness'])
+    try:
+        todas = {'GA': [], 'ACO': [], 'Híbrido': []}
+        for c in range(n_corridas):
+            p = crear_problema(caps, total)
+            p.semilla = 42 + c + 1
+            todas['GA'].append(AlgoritmoGenetico(p, tam_poblacion=pob_a, generaciones=iters_a).ejecutar()['fitness'])
+            todas['ACO'].append(ColoniaHormigas(p, n_hormigas=max(5, pob_a // 3), n_iteraciones=iters_a).ejecutar()['fitness'])
+            todas['Híbrido'].append(HibridoGAACO(p, tam_poblacion=pob_a, n_iteraciones=iters_a).ejecutar()['fitness'])
+    except Exception as e:
+        return jsonify({"error": f"Error en análisis: {str(e)}"}), 500
 
     # Estadisticas descriptivas
     stats = {}
@@ -283,29 +309,44 @@ def sensibilidad():
 
     n = len(caps)
 
-    # Variacion de poblacion (iteraciones fijas a 80)
-    poblaciones = [20, 40, 60, 80, 100]
-    res_pob = {'GA': [], 'ACO': [], 'Híbrido': []}
-    for tam in poblaciones:
-        p = crear_problema(caps, total)
-        res_pob['GA'].append(round(
-            AlgoritmoGenetico(p, tam_poblacion=tam, generaciones=80).ejecutar()['fitness'], 2))
-        res_pob['ACO'].append(round(
-            ColoniaHormigas(p, n_hormigas=max(5, tam // 3), n_iteraciones=80).ejecutar()['fitness'], 2))
-        res_pob['Híbrido'].append(round(
-            HibridoGAACO(p, tam_poblacion=tam, n_iteraciones=80).ejecutar()['fitness'], 2))
+    # Escalar valores segun total de tareas para evitar timeout
+    if total <= 30:
+        poblaciones = [20, 40, 60, 80, 100]
+        iteraciones = [30, 60, 100, 150, 200]
+        it_fijo, pob_fija = 80, 60
+    elif total <= 60:
+        poblaciones = [20, 40, 60, 80]
+        iteraciones = [30, 60, 80, 100]
+        it_fijo, pob_fija = 50, 40
+    else:
+        poblaciones = [20, 40, 60]
+        iteraciones = [20, 40, 60]
+        it_fijo, pob_fija = 30, 30
 
-    # Variacion de iteraciones (poblacion fija a 60)
-    iteraciones = [30, 60, 100, 150, 200]
-    res_iter = {'GA': [], 'ACO': [], 'Híbrido': []}
-    for it in iteraciones:
-        p = crear_problema(caps, total)
-        res_iter['GA'].append(round(
-            AlgoritmoGenetico(p, tam_poblacion=60, generaciones=it).ejecutar()['fitness'], 2))
-        res_iter['ACO'].append(round(
-            ColoniaHormigas(p, n_hormigas=20, n_iteraciones=it).ejecutar()['fitness'], 2))
-        res_iter['Híbrido'].append(round(
-            HibridoGAACO(p, tam_poblacion=60, n_iteraciones=it).ejecutar()['fitness'], 2))
+    try:
+        # Variacion de poblacion (iteraciones fijas)
+        res_pob = {'GA': [], 'ACO': [], 'Híbrido': []}
+        for tam in poblaciones:
+            p = crear_problema(caps, total)
+            res_pob['GA'].append(round(
+                AlgoritmoGenetico(p, tam_poblacion=tam, generaciones=it_fijo).ejecutar()['fitness'], 2))
+            res_pob['ACO'].append(round(
+                ColoniaHormigas(p, n_hormigas=max(5, tam // 3), n_iteraciones=it_fijo).ejecutar()['fitness'], 2))
+            res_pob['Híbrido'].append(round(
+                HibridoGAACO(p, tam_poblacion=tam, n_iteraciones=it_fijo).ejecutar()['fitness'], 2))
+
+        # Variacion de iteraciones (poblacion fija)
+        res_iter = {'GA': [], 'ACO': [], 'Híbrido': []}
+        for it in iteraciones:
+            p = crear_problema(caps, total)
+            res_iter['GA'].append(round(
+                AlgoritmoGenetico(p, tam_poblacion=pob_fija, generaciones=it).ejecutar()['fitness'], 2))
+            res_iter['ACO'].append(round(
+                ColoniaHormigas(p, n_hormigas=max(5, pob_fija // 3), n_iteraciones=it).ejecutar()['fitness'], 2))
+            res_iter['Híbrido'].append(round(
+                HibridoGAACO(p, tam_poblacion=pob_fija, n_iteraciones=it).ejecutar()['fitness'], 2))
+    except Exception as e:
+        return jsonify({"error": f"Error en sensibilidad: {str(e)}"}), 500
 
     return jsonify({
         "poblacion": {"valores": poblaciones, "resultados": res_pob},
@@ -314,7 +355,4 @@ def sensibilidad():
 
 
 if __name__ == '__main__':
-    print("\n  Proyecto Final corriendo en http://0.0.0.0:5000")
-    print("  Companeros: http://TU_IP:5000")
-    print("  Admin:      http://TU_IP:5000 -> contrasena\n")
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    app.run(host='127.0.0.1', port=5000, debug=True)
