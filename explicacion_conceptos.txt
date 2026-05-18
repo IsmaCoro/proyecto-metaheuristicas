@@ -1,94 +1,274 @@
-EXPLICACIÓN DE CONCEPTOS — PROYECTO FINAL: ALGORITMOS METAHEURÍSTICOS
+EXPLICACION DE CONCEPTOS — PROYECTO FINAL: ALGORITMOS METAHEURISTICOS
 ======================================================================
-
-1. FITNESS (la calificación)
-----------------------------
-Imagina que le pones calificación a cómo distribuiste las tareas. MENOR = MEJOR.
-
-  Fitness = 0.4 × Balance + 0.3 × Energía + 0.3 × Tiempo + Penalización
-
-  Balance     → ¿Están parejos los servidores? Si uno tiene 100% y otro 0%, está mal.
-  Energía     → ¿Cuánta luz gasta el datacenter? Menos servidores encendidos = menos watts.
-  Tiempo máx  → ¿Cuál es el servidor más lento? El más saturado define el cuello de botella.
-  Penalización → ¿Algún servidor rebasó su límite de CPU o RAM? Castigo enorme.
-
-  Ejemplo:
-    Tu distribución:      S0=12, S1=0, S2=0, S3=0  → Fitness = 85 (todo en uno, horrible)
-    Después de optimizar: S0=3, S1=3, S2=3, S3=3   → Fitness = 8  (balanceado, eficiente)
+Documento de referencia para entender cada parte del sistema antes
+de la presentacion oral. Lee esto completo y vas a poder contestar
+cualquier pregunta del profe.
 
 
-2. CONVERGENCIA (la gráfica de líneas)
----------------------------------------
-Muestra cómo mejora cada algoritmo conforme avanzan las iteraciones.
+1. EL PROBLEMA: ASIGNACION DE RECURSOS EN LA NUBE
+===================================================
+Tienes un datacenter con 6 servidores de diferente capacidad
+(4, 8, 16, 32 CPUs). Llegan tareas que consumen CPU y RAM.
+El reto es: ¿a cual servidor le asignas cada tarea?
 
-  - GA (rojo): baja rápido al inicio pero se estanca. Buena exploración inicial.
-  - ACO (azul): baja más lento pero de forma constante. Las feromonas guían mejor.
-  - Híbrido (morado): combina ambos y llega al fitness más bajo.
+Si las repartes mal:
+  - Un servidor se satura al 150% y los demas estan vacios
+  - Gastas mas luz de la necesaria
+  - El servidor saturado se vuelve lento (cuello de botella)
 
-  Qué decirle al profe:
-    "El Híbrido converge a un valor más bajo porque combina la exploración del GA
-     con la intensificación del ACO, además de una búsqueda local periódica."
+Si las repartes bien:
+  - Todos los servidores trabajan parejo (30-40% cada uno)
+  - Apagas servidores innecesarios y ahorras energia
+  - Ningun servidor es cuello de botella
+
+Esto es un problema NP-duro: no puedes probar TODAS las combinaciones
+posibles porque con 20 tareas y 6 servidores hay 6^20 = 3.6 billones
+de opciones. Por eso necesitas metaheuristicas.
 
 
-3. WILCOXON (la prueba estadística)
-------------------------------------
-El profe va a preguntar: "¿Cómo sabes que el Híbrido es REALMENTE mejor y no fue suerte?"
+2. FITNESS (la calificacion de cada solucion)
+===============================================
+El fitness es un numero que mide que tan buena o mala es una
+distribucion de tareas. MENOR = MEJOR.
 
-Respuesta: corremos cada algoritmo 10 veces con diferentes semillas y comparamos.
+La formula combina 3 objetivos + penalizacion:
 
+  Fitness = 0.4 * Balance + 0.3 * (Energia / 100) + 0.3 * (Tiempo * 10) + Penalizacion
+
+Cada componente mide algo diferente:
+
+  Balance (peso 40%)
+    Calcula la desviacion estandar de los porcentajes de uso.
+    Si un servidor esta al 100% y otro al 0%, la desviacion es alta = malo.
+    Si todos estan al 30%, la desviacion es baja = bueno.
+
+  Energia (peso 30%)
+    Suma los watts de todos los servidores encendidos.
+    Cada servidor tiene un consumo base + consumo por CPU usada.
+    Menos servidores activos = menos watts = mejor.
+
+  Tiempo maximo (peso 30%)
+    El servidor mas saturado define el cuello de botella.
+    Se calcula como (carga / capacidad) * 10 para cada servidor.
+    El peor de todos es el que cuenta.
+
+  Penalizacion (sin limite)
+    Si un servidor rebasa su limite de CPU o RAM, se suma un castigo
+    enorme: 50 puntos por cada CPU de exceso + 25 por cada GB de RAM.
+    Esto obliga al algoritmo a respetar las restricciones.
+
+Ejemplo:
+  Tu distribucion:        S0=12 tareas, S1=0, S2=0, S3=0 -> Fitness = 85
+  Despues de optimizar:   S0=3, S1=3, S2=3, S3=3         -> Fitness = 8
+
+Que decirle al profe:
+  "El fitness es una funcion multiobjetivo ponderada que minimiza
+   simultaneamente el desbalance de carga, el consumo energetico y el
+   tiempo de respuesta, con penalizacion por violacion de restricciones."
+
+
+3. LOS 3 ALGORITMOS
+=====================
+
+a) Algoritmo Genetico (GA)
+   Inspirado en la evolucion de Darwin. Cada "individuo" es una
+   solucion (una lista que dice a que servidor va cada tarea).
+
+   Operadores:
+   - Poblacion inicial: 1 greedy + 59 aleatorias
+   - Seleccion por torneo: toma 5 al azar, se queda con el mejor
+   - Cruce uniforme: mezcla genes de 2 padres (50/50 cada gen)
+   - Mutacion: cambia un gen al azar con probabilidad 15%
+   - Elitismo: los 3 mejores pasan directo a la siguiente generacion
+
+   Ventaja: explora muchas regiones del espacio de busqueda.
+   Desventaja: puede estancarse en optimos locales.
+
+b) Colonia de Hormigas (ACO)
+   Inspirado en como las hormigas encuentran el camino mas corto
+   al alimento usando feromonas.
+
+   Mecanismo:
+   - Cada hormiga construye una solucion tarea por tarea
+   - La probabilidad de asignar tarea i al servidor j depende de:
+       * Feromonas (tau): que tan buenas fueron las soluciones anteriores
+         que usaron esa asignacion
+       * Heuristica (eta): cuanta capacidad libre tiene el servidor
+   - Prob = (tau^alfa * eta^beta) / suma_total
+   - Despues de cada iteracion, se evaporan las feromonas (30%)
+     y las mejores hormigas depositan mas feromona
+
+   Ventaja: intensifica la busqueda en zonas prometedoras.
+   Desventaja: convergencia mas lenta que GA al inicio.
+
+c) Hibrido GA-ACO (el tuyo propio)
+   Combina lo mejor de ambos. Esta es la aportacion original del proyecto.
+
+   Como funciona:
+   1. Crea poblacion genetica + matriz de feromonas
+   2. En cada generacion:
+      - 70% de hijos se generan con operadores GA (cruce + mutacion)
+      - 30% se generan con construccion ACO (feromonas + heuristica)
+      - La mutacion NO es aleatoria: esta guiada por feromonas
+        (muta hacia servidores con mas feromona, no al azar)
+      - Los mejores individuos depositan feromonas (elitismo ACO)
+   3. Cada 20 generaciones aplica busqueda local:
+      - Toma la mejor solucion
+      - Mueve tareas del servidor mas cargado al menos cargado
+      - Repite hasta que no mejore (maximo 50 movimientos)
+   4. Al final, aplica busqueda local una vez mas al mejor global
+
+   Ventaja: exploracion del GA + intensificacion del ACO + refinamiento local.
+   Por eso casi siempre gana.
+
+   Que decirle al profe:
+   "El hibrido integra los operadores geneticos para explorar el espacio
+    de busqueda, las feromonas para guiar la mutacion e intensificar, y una
+    busqueda local periodica para refinar las mejores soluciones. Esto
+    combina las fortalezas de ambos paradigmas y mitiga sus debilidades."
+
+
+4. CONVERGENCIA (la grafica de lineas)
+========================================
+Muestra como mejora el fitness de cada algoritmo conforme avanzan
+las iteraciones (generaciones).
+
+  - GA (rojo): baja rapido al inicio porque la seleccion por torneo
+    y el elitismo filtran las malas soluciones. Pero se estanca porque
+    la mutacion aleatoria no encuentra mejoras finas.
+
+  - ACO (azul): baja mas lento pero de forma mas constante. Las
+    feromonas van acumulando informacion de las buenas soluciones
+    y guian a las hormigas hacia mejores zonas.
+
+  - Hibrido (morado): combina la bajada rapida del GA con la
+    constancia del ACO. La busqueda local cada 20 generaciones
+    produce "escalones" de mejora adicional.
+
+Que decirle al profe:
+  "La grafica de convergencia evidencia que el hibrido alcanza valores
+   de fitness inferiores en menos iteraciones, lo cual indica una mejor
+   relacion entre exploracion e intensificacion."
+
+
+5. WILCOXON (la prueba estadistica)
+=====================================
+El profe va a preguntar: "¿Como sabes que el Hibrido es REALMENTE
+mejor y no fue suerte de una sola corrida?"
+
+Respuesta: se ejecuta cada algoritmo 10 veces con semillas diferentes
+y se comparan los resultados estadisticamente.
+
+Ejemplo de resultados:
   GA:      [23, 25, 22, 28, 24, 26, 21, 27, 23, 25]   Media = 24.4
   ACO:     [19, 21, 20, 22, 18, 20, 19, 21, 20, 19]   Media = 19.9
-  Híbrido: [12, 14, 11, 13, 12, 15, 11, 13, 12, 14]   Media = 12.7  ← mejor
+  Hibrido: [12, 14, 11, 13, 12, 15, 11, 13, 12, 14]   Media = 12.7
 
-La prueba de Wilcoxon compara par a par:
-  - GA vs ACO:     p=0.003  → Significativo (p < 0.05). ACO es mejor que GA.
-  - GA vs Híbrido: p=0.001  → Significativo. Híbrido es mejor que GA.
-  - ACO vs Híbrido: p=0.008 → Significativo. Híbrido es mejor que ACO.
+La prueba de Wilcoxon (para muestras pareadas) compara cada par:
+  - GA vs ACO:      p = 0.003  -> Significativo (p < 0.05)
+  - GA vs Hibrido:  p = 0.001  -> Significativo
+  - ACO vs Hibrido: p = 0.008  -> Significativo
 
-  Qué decirle al profe:
-    "Con p-valor menor a 0.05, rechazamos la hipótesis nula: la diferencia
-     entre algoritmos ES estadísticamente significativa, no es producto del azar."
+¿Que significa "significativo"?
+  Si p < 0.05, la probabilidad de que la diferencia sea pura casualidad
+  es menor al 5%. Entonces podemos decir con confianza estadistica que
+  un algoritmo ES mejor que otro, no fue suerte.
 
+  Si p >= 0.05, la diferencia NO es significativa — podria ser azar.
 
-4. SENSIBILIDAD (las dos gráficas)
------------------------------------
-Responde: "¿Qué pasa si cambio los parámetros del algoritmo?"
+Nota: si los datos son identicos (cero diferencias), se usa Mann-Whitney U
+en lugar de Wilcoxon. El sistema lo hace automaticamente.
 
-  Gráfica 1 — Fitness vs Tamaño de población:
-    Con 20 individuos el fitness es alto (malo).
-    Con 60 mejora bastante.
-    Con 80 y 100 ya no mejora mucho → 60 es suficiente.
-
-  Gráfica 2 — Fitness vs Iteraciones:
-    Con 30 iteraciones no alcanza a converger.
-    Con 100 ya se estabiliza.
-    Con 150 y 200 casi no hay cambio → 150 es el punto óptimo.
-
-  Qué decirle al profe:
-    "El análisis de sensibilidad muestra que 60 individuos y 150 iteraciones
-     es el punto de equilibrio entre calidad de solución y costo computacional."
+Que decirle al profe:
+  "Se realizaron 10 corridas independientes con semillas distintas.
+   La prueba de Wilcoxon arrojo p-valores menores a 0.05 en todas
+   las comparaciones, lo que confirma que las diferencias de rendimiento
+   entre algoritmos son estadisticamente significativas."
 
 
-5. GRÁFICA DE CARGA (barras antes vs después)
-----------------------------------------------
-Compara la distribución del usuario contra la del algoritmo:
-
-  Antes (rojo):
-    S0: 120% (SATURADO), S1: 12%, S2: 0%, S3: 88%
-
-  Optimizado (verde):
-    S0: 25%, S1: 30%, S2: 28%, S3: 17%
-
-  Qué decirle al profe:
-    "El usuario saturó el servidor S0 al 120%, violando las restricciones de capacidad.
-     El algoritmo híbrido redistribuyó las tareas equitativamente, eliminando la
-     saturación y reduciendo el consumo energético."
-
-
-RESUMEN RÁPIDO PARA LA PRESENTACIÓN
+6. SENSIBILIDAD (las dos graficas)
 ====================================
-  Fitness      → "Menor fitness = mejor distribución"
-  Convergencia → "El Híbrido converge más rápido y a mejor valor"
-  Wilcoxon     → "Con p < 0.05, la diferencia es estadísticamente significativa"
-  Sensibilidad → "60 individuos y 150 iteraciones son los parámetros óptimos"
-  Carga        → "De 120% saturado a 25% balanceado"
+Responde a la pregunta: "¿Que pasa si cambio los parametros del
+algoritmo? ¿Son los que elegiste realmente los mejores?"
+
+Grafica 1 — Fitness vs Tamano de poblacion (iteraciones fijas en 80):
+  Se prueba con: 20, 40, 60, 80, 100 individuos.
+  - Con 20 el fitness es alto (malo), poca diversidad genetica.
+  - Con 60 mejora bastante — suficiente diversidad.
+  - Con 80 y 100 ya casi no mejora, pero tarda mas.
+  - Conclusion: 60 individuos es el punto de equilibrio.
+
+Grafica 2 — Fitness vs Numero de iteraciones (poblacion fija en 60):
+  Se prueba con: 30, 60, 100, 150, 200 iteraciones.
+  - Con 30 no alcanza a converger — muy pocas generaciones.
+  - Con 100 ya se estabiliza.
+  - Con 150 y 200 practicamente no cambia.
+  - Conclusion: 150 iteraciones es suficiente.
+
+Que decirle al profe:
+  "El analisis de sensibilidad demuestra que 60 individuos y 150
+   iteraciones representan el punto de equilibrio optimo entre calidad
+   de solucion y costo computacional. Aumentar mas alla de estos
+   valores produce rendimientos decrecientes."
+
+
+7. GRAFICA DE CARGA (barras antes vs despues)
+===============================================
+Compara visualmente la distribucion del usuario contra la del algoritmo.
+
+  Antes (barras rojas) — lo que hicieron los companeros:
+    S0: 120% (SATURADO — viola la restriccion de capacidad)
+    S1: 12%  (casi vacio)
+    S2: 0%   (apagado)
+    S3: 88%  (casi al limite)
+
+  Optimizado (barras verdes) — lo que propone el hibrido:
+    S0: 25%
+    S1: 30%
+    S2: 28%
+    S3: 17%
+
+La diferencia es clara: de tener un servidor reventado y otro apagado,
+pasa a una distribucion equilibrada sin violaciones.
+
+Que decirle al profe:
+  "La comparacion visual muestra que la asignacion manual de los
+   usuarios genero saturacion del 120% en S0, violando restricciones.
+   El algoritmo hibrido redistribuyo las tareas logrando un balance
+   uniforme y eliminando toda saturacion."
+
+
+8. BASELINE GREEDY (el metodo determinista de referencia)
+==========================================================
+El profe espera que compares tus metaheuristicas contra un metodo
+simple y determinista para demostrar que valen la pena.
+
+El Greedy funciona asi:
+  - Para cada tarea, la asigna al servidor con mas capacidad libre
+  - No retrocede ni optimiza — toma la decision local optima
+  - Siempre da el mismo resultado (determinista)
+
+¿Por que importa?
+  - Si tus metaheuristicas dan fitness PEOR que el greedy, algo esta mal
+  - Si dan fitness MEJOR, demuestras que la busqueda inteligente supera
+    a la regla simple
+  - En tu panel, el fitness del greedy aparece como referencia
+
+Que decirle al profe:
+  "Se incluye un baseline greedy determinista para validar que las
+   metaheuristicas efectivamente superan una heuristica constructiva
+   simple, justificando el costo computacional adicional."
+
+
+RESUMEN RAPIDO PARA LA PRESENTACION
+=====================================
+  Problema     -> "Asignacion de recursos en la nube, NP-duro"
+  Fitness      -> "Menor fitness = mejor distribucion (multiobjetivo ponderado)"
+  GA           -> "Evolucion: seleccion, cruce, mutacion, elitismo"
+  ACO          -> "Feromonas + heuristica de capacidad libre"
+  Hibrido      -> "70% GA + 30% ACO + mutacion guiada + busqueda local"
+  Convergencia -> "El Hibrido converge mas rapido y a mejor valor"
+  Wilcoxon     -> "Con p < 0.05, la diferencia es estadisticamente significativa"
+  Sensibilidad -> "60 individuos y 150 iteraciones son los parametros optimos"
+  Carga        -> "De 120% saturado a 25% balanceado"
+  Greedy       -> "Baseline determinista superado por las 3 metaheuristicas"

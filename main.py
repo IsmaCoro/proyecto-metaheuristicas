@@ -11,12 +11,12 @@ import threading
 app = Flask(__name__)
 app.secret_key = 'clave_secreta_proyecto_final_2026'
 
-# Configuración
+# Configuracion del datacenter simulado
 CLAVE_ADMIN = "25052023"
-
 TIPOS_CPU = [4, 8, 16, 32]
 N_SERVIDORES = 6
 
+# Estado compartido entre hilos (protegido por lock)
 estado = {
     "tareas": [0] * N_SERVIDORES,
     "capacidades": [TIPOS_CPU[i % len(TIPOS_CPU)] for i in range(N_SERVIDORES)],
@@ -25,28 +25,32 @@ estado = {
 }
 lock = threading.Lock()
 
+# Datos de hardware por tipo de servidor
+TIPOS_NOMBRE = ["Pequeno", "Mediano", "Grande", "Monstruo"]
+WATTS_POR_CPU = [12, 9, 7, 5]
+WATTS_BASE = [8, 16, 32, 64]
+RAM_GB = [16, 32, 64, 128]
 
-# Rutas
+
+# ── Paginas ──
 
 @app.route('/')
 def inicio():
     return render_template('inicio.html')
 
-
 @app.route('/votar')
 def votar():
     return render_template('votar.html')
 
-
 @app.route('/verificar', methods=['POST'])
 def verificar():
+    """Valida la clave y guarda sesion si es correcta."""
     datos = request.get_json()
     clave = datos.get('clave', '') if datos else ''
     if clave == CLAVE_ADMIN:
         session['admin'] = True
         return jsonify({"ok": True})
     return jsonify({"ok": False})
-
 
 @app.route('/panel')
 def panel():
@@ -55,27 +59,22 @@ def panel():
     return render_template('panel.html')
 
 
-# ── API: estado actual ──
+# ── API: lectura de estado ──
 
 @app.route('/estado')
 def get_estado():
-    """Retorna el estado actual (polling)."""
-    tipos_nombre = ["Pequeño", "Mediano", "Grande", "Monstruo"]
-    watts_por_cpu = [12, 9, 7, 5]
-    watts_base = [8, 16, 32, 64]
-    ram = [16, 32, 64, 128]
-
+    """Retorna tareas, capacidades y specs de hardware (polling cada 2-3s)."""
     servidores_info = []
     for i in range(N_SERVIDORES):
-        tipo_idx = i % len(TIPOS_CPU)
+        idx = i % len(TIPOS_CPU)
         servidores_info.append({
             "id": f"S{i}",
-            "tipo": tipos_nombre[tipo_idx],
-            "cpu": TIPOS_CPU[tipo_idx],
-            "ram_gb": ram[tipo_idx],
-            "watts_base": watts_base[tipo_idx],
-            "watts_por_cpu": watts_por_cpu[tipo_idx],
-            "watts_max": watts_base[tipo_idx] + (TIPOS_CPU[tipo_idx] * watts_por_cpu[tipo_idx]),
+            "tipo": TIPOS_NOMBRE[idx],
+            "cpu": TIPOS_CPU[idx],
+            "ram_gb": RAM_GB[idx],
+            "watts_base": WATTS_BASE[idx],
+            "watts_por_cpu": WATTS_POR_CPU[idx],
+            "watts_max": WATTS_BASE[idx] + (TIPOS_CPU[idx] * WATTS_POR_CPU[idx]),
         })
 
     with lock:
@@ -89,11 +88,11 @@ def get_estado():
         })
 
 
-# ── API: agregar tarea ──
+# ── API: control de tareas ──
 
 @app.route('/agregar/<int:sid>', methods=['POST'])
 def agregar(sid):
-    """Un compañero agrega 1 tarea al servidor sid."""
+    """Agrega 1 tarea al servidor indicado. Rechaza si esta pausado."""
     with lock:
         if estado["pausado"]:
             return jsonify({"ok": False, "pausado": True})
@@ -101,40 +100,42 @@ def agregar(sid):
             estado["tareas"][sid] += 1
     return jsonify({"ok": True})
 
-
-# ── API: pausar/reanudar ──
-
 @app.route('/pausar', methods=['POST'])
 def pausar():
-    """Alterna el estado pausado/activo."""
+    """Alterna pausado/activo para bloquear entradas."""
     with lock:
         estado["pausado"] = not estado["pausado"]
     return jsonify({"pausado": estado["pausado"]})
 
-
 @app.route('/cooldown', methods=['POST'])
 def toggle_cooldown():
-    """Alterna el cooldown de 10s para los votos."""
+    """Activa/desactiva el timer de 10s entre clicks."""
     with lock:
         estado["cooldown"] = not estado["cooldown"]
     return jsonify({"cooldown": estado["cooldown"]})
 
-
-# ── API: reiniciar ──
-
 @app.route('/reiniciar', methods=['POST'])
 def reiniciar():
-    """Resetea todas las tareas a 0."""
+    """Borra todas las tareas."""
     with lock:
         estado["tareas"] = [0] * N_SERVIDORES
     return jsonify({"ok": True})
 
 
-# ── API: optimizar ──
+# ── API: optimizacion ──
+
+def crear_problema(caps, total):
+    """Crea una instancia del problema con las capacidades actuales."""
+    n = len(caps)
+    problema = ProblemaCloud(n_servidores=n, n_tareas=total, semilla=42)
+    for j in range(n):
+        problema.servidores[j]["cpu_total"] = caps[j]
+        problema.servidores[j]["ram_total"] = caps[j] * 4
+    return problema
 
 @app.route('/optimizar', methods=['POST'])
 def optimizar():
-    """Ejecuta los 3 algoritmos y retorna resultados."""
+    """Ejecuta GA, ACO e Hibrido sobre la distribucion actual."""
     with lock:
         tareas = estado["tareas"][:]
         caps = estado["capacidades"][:]
@@ -144,23 +145,18 @@ def optimizar():
         return jsonify({"error": "Sin tareas"}), 400
 
     n = len(caps)
-    problema = ProblemaCloud(n_servidores=n, n_tareas=total, semilla=42)
-    for j in range(n):
-        problema.servidores[j]["cpu_total"] = caps[j]
-        problema.servidores[j]["ram_total"] = caps[j] * 4
+    problema = crear_problema(caps, total)
 
-    # Asignación del usuario
+    # Asignacion del usuario (baseline)
     asig_usr = []
     for j in range(n):
         asig_usr.extend([j] * tareas[j])
-
     met_antes = problema.evaluar(asig_usr)
 
-    # Baseline greedy
-    asig_greedy = problema.asignacion_greedy()
-    met_greedy = problema.evaluar(asig_greedy)
+    # Greedy determinista
+    met_greedy = problema.evaluar(problema.asignacion_greedy())
 
-    # Ejecutar algoritmos
+    # Tres metaheuristicas
     res = {}
     res['GA'] = AlgoritmoGenetico(problema, tam_poblacion=60, generaciones=150).ejecutar()
     res['ACO'] = ColoniaHormigas(problema, n_hormigas=20, n_iteraciones=150).ejecutar()
@@ -169,12 +165,13 @@ def optimizar():
     mejor_k = min(res, key=lambda k: res[k]['fitness'])
     mejor = res[mejor_k]
 
+    # Contar tareas por servidor en la solucion optima
     tareas_opt = [0] * n
     for sid in mejor['asignacion']:
         if 0 <= sid < n:
             tareas_opt[sid] += 1
 
-    # Armar respuesta
+    # Respuesta JSON
     resp = {
         "mejor_algoritmo": mejor_k,
         "tareas_optimizadas": tareas_opt,
@@ -185,9 +182,7 @@ def optimizar():
             "saturados": met_antes['servidores_saturados'],
             "fitness": round(met_antes['fitness'], 2),
         },
-        "greedy": {
-            "fitness": round(met_greedy['fitness'], 2),
-        },
+        "greedy": {"fitness": round(met_greedy['fitness'], 2)},
         "despues": {
             "balance": round(mejor['metricas']['balance'], 2),
             "energia": round(mejor['metricas']['energia'], 1),
@@ -216,11 +211,11 @@ def optimizar():
     return jsonify(resp)
 
 
-# ── API: análisis estadístico ──
+# ── API: analisis estadistico (10 corridas + Wilcoxon) ──
 
 @app.route('/analisis', methods=['POST'])
 def analisis():
-    """Múltiples corridas + prueba de Wilcoxon."""
+    """Compara algoritmos con multiples corridas y prueba de Wilcoxon."""
     with lock:
         caps = estado["capacidades"][:]
         total = sum(estado["tareas"])
@@ -231,16 +226,16 @@ def analisis():
     n = len(caps)
     n_corridas = 10
 
+    # Ejecutar cada algoritmo n_corridas veces con semillas distintas
     todas = {'GA': [], 'ACO': [], 'Híbrido': []}
     for c in range(n_corridas):
-        p = ProblemaCloud(n_servidores=n, n_tareas=total, semilla=42 + c + 1)
-        for j in range(n):
-            p.servidores[j]["cpu_total"] = caps[j]
-            p.servidores[j]["ram_total"] = caps[j] * 4
+        p = crear_problema(caps, total)
+        p.semilla = 42 + c + 1
         todas['GA'].append(AlgoritmoGenetico(p, generaciones=100).ejecutar()['fitness'])
         todas['ACO'].append(ColoniaHormigas(p, n_iteraciones=100).ejecutar()['fitness'])
         todas['Híbrido'].append(HibridoGAACO(p, n_iteraciones=100).ejecutar()['fitness'])
 
+    # Estadisticas descriptivas
     stats = {}
     for k in todas:
         a = np.array(todas[k])
@@ -252,6 +247,7 @@ def analisis():
             'valores': [round(float(v), 2) for v in todas[k]],
         }
 
+    # Prueba de Wilcoxon / Mann-Whitney entre pares
     wilcoxon_res = []
     for a, b in combinations(['GA', 'ACO', 'Híbrido'], 2):
         da, db = np.array(todas[a]), np.array(todas[b])
@@ -273,14 +269,11 @@ def analisis():
     return jsonify({"estadisticas": stats, "wilcoxon": wilcoxon_res})
 
 
-# ── API: análisis de sensibilidad ──
+# ── API: sensibilidad de parametros ──
 
 @app.route('/sensibilidad', methods=['POST'])
 def sensibilidad():
-    """
-    Varía parámetros clave y mide el impacto en el fitness.
-    Esto cumple el requisito de análisis de sensibilidad (nivel avanzado).
-    """
+    """Varia poblacion e iteraciones para medir impacto en fitness."""
     with lock:
         caps = estado["capacidades"][:]
         total = sum(estado["tareas"])
@@ -290,44 +283,38 @@ def sensibilidad():
 
     n = len(caps)
 
-    # Variaciones de tamaño de población
+    # Variacion de poblacion (iteraciones fijas a 80)
     poblaciones = [20, 40, 60, 80, 100]
-    res_poblacion = {'GA': [], 'ACO': [], 'Híbrido': []}
+    res_pob = {'GA': [], 'ACO': [], 'Híbrido': []}
     for tam in poblaciones:
-        p = ProblemaCloud(n_servidores=n, n_tareas=total, semilla=42)
-        for j in range(n):
-            p.servidores[j]["cpu_total"] = caps[j]
-            p.servidores[j]["ram_total"] = caps[j] * 4
-        res_poblacion['GA'].append(round(
+        p = crear_problema(caps, total)
+        res_pob['GA'].append(round(
             AlgoritmoGenetico(p, tam_poblacion=tam, generaciones=80).ejecutar()['fitness'], 2))
-        res_poblacion['ACO'].append(round(
+        res_pob['ACO'].append(round(
             ColoniaHormigas(p, n_hormigas=max(5, tam // 3), n_iteraciones=80).ejecutar()['fitness'], 2))
-        res_poblacion['Híbrido'].append(round(
+        res_pob['Híbrido'].append(round(
             HibridoGAACO(p, tam_poblacion=tam, n_iteraciones=80).ejecutar()['fitness'], 2))
 
-    # Variaciones de iteraciones
+    # Variacion de iteraciones (poblacion fija a 60)
     iteraciones = [30, 60, 100, 150, 200]
-    res_iteraciones = {'GA': [], 'ACO': [], 'Híbrido': []}
+    res_iter = {'GA': [], 'ACO': [], 'Híbrido': []}
     for it in iteraciones:
-        p = ProblemaCloud(n_servidores=n, n_tareas=total, semilla=42)
-        for j in range(n):
-            p.servidores[j]["cpu_total"] = caps[j]
-            p.servidores[j]["ram_total"] = caps[j] * 4
-        res_iteraciones['GA'].append(round(
+        p = crear_problema(caps, total)
+        res_iter['GA'].append(round(
             AlgoritmoGenetico(p, tam_poblacion=60, generaciones=it).ejecutar()['fitness'], 2))
-        res_iteraciones['ACO'].append(round(
+        res_iter['ACO'].append(round(
             ColoniaHormigas(p, n_hormigas=20, n_iteraciones=it).ejecutar()['fitness'], 2))
-        res_iteraciones['Híbrido'].append(round(
+        res_iter['Híbrido'].append(round(
             HibridoGAACO(p, tam_poblacion=60, n_iteraciones=it).ejecutar()['fitness'], 2))
 
     return jsonify({
-        "poblacion": {"valores": poblaciones, "resultados": res_poblacion},
-        "iteraciones": {"valores": iteraciones, "resultados": res_iteraciones},
+        "poblacion": {"valores": poblaciones, "resultados": res_pob},
+        "iteraciones": {"valores": iteraciones, "resultados": res_iter},
     })
 
 
 if __name__ == '__main__':
-    print("\n  ☁️  Proyecto Final corriendo en http://0.0.0.0:5000")
-    print("  📱  Compañeros:  http://TU_IP:5000")
-    print("  💻  Tu panel:    http://TU_IP:5000/panel?clave=admin\n")
+    print("\n  Proyecto Final corriendo en http://0.0.0.0:5000")
+    print("  Companeros: http://TU_IP:5000")
+    print("  Admin:      http://TU_IP:5000 -> contrasena\n")
     app.run(host='0.0.0.0', port=5000, debug=True)

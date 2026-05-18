@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Presentación — Optimización en la Nube</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:100%;height:100%;overflow:hidden;background:#0a0a0f;font-family:'Inter',sans-serif;color:#e0e0e0}
+.deck{width:100%;height:100%;position:relative}
+.slide{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:60px 80px;opacity:0;pointer-events:none;transition:opacity .5s ease,transform .5s ease;transform:translateX(40px)}
+.slide.active{opacity:1;pointer-events:all;transform:translateX(0)}
+.slide.prev{opacity:0;transform:translateX(-40px)}
+
+/* Backgrounds */
+.bg-grad{background:linear-gradient(135deg,#0a0a1a 0%,#1a1a3e 50%,#0d0d2b 100%)}
+.bg-dark{background:linear-gradient(180deg,#0a0a0f 0%,#111128 100%)}
+.bg-accent{background:linear-gradient(135deg,#1a0a2e 0%,#2d1b69 40%,#1a1a3e 100%)}
+
+/* Typography */
+h1{font-size:3.2rem;font-weight:900;line-height:1.1;margin-bottom:16px;background:linear-gradient(135deg,#667eea,#764ba2,#f093fb);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+h2{font-size:2.4rem;font-weight:700;margin-bottom:24px;color:#fff}
+h3{font-size:1.4rem;font-weight:600;color:#667eea;margin-bottom:12px;text-transform:uppercase;letter-spacing:2px}
+p{font-size:1.15rem;line-height:1.7;color:#b0b0c0;max-width:900px}
+.subtitle{font-size:1.3rem;color:#888;font-weight:300;margin-bottom:8px}
+.tag{display:inline-block;background:#667eea22;border:1px solid #667eea55;color:#667eea;padding:4px 14px;border-radius:20px;font-size:.85rem;margin:4px;font-weight:600}
+
+/* Cards grid */
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;width:100%;max-width:1100px;margin-top:20px}
+.card{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:28px 24px;text-align:left;transition:transform .3s,border-color .3s}
+.card:hover{transform:translateY(-4px);border-color:#667eea55}
+.card h4{font-size:1.15rem;font-weight:700;color:#fff;margin-bottom:8px}
+.card p{font-size:.95rem;color:#999;line-height:1.5}
+.card .ico{font-size:2rem;margin-bottom:12px}
+
+/* Two columns */
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:40px;width:100%;max-width:1100px;align-items:start}
+.col{text-align:left}
+.col h4{font-size:1.2rem;color:#fff;margin-bottom:10px;font-weight:700}
+.col p,.col li{font-size:1rem;color:#aaa;line-height:1.6}
+.col ul{list-style:none;padding:0}
+.col li{padding:6px 0;padding-left:20px;position:relative}
+.col li::before{content:'▸';position:absolute;left:0;color:#667eea}
+
+/* Equation */
+.equation{background:rgba(102,126,234,.08);border:1px solid #667eea44;border-radius:12px;padding:20px 32px;font-family:'JetBrains Mono',monospace;font-size:1.1rem;color:#c0c8ff;margin:16px 0;text-align:center;letter-spacing:.5px}
+
+/* Table */
+table{border-collapse:collapse;width:100%;max-width:900px;margin:16px 0;font-size:.95rem}
+th{background:rgba(102,126,234,.15);color:#667eea;padding:12px 16px;text-align:center;font-weight:700;border-bottom:2px solid #667eea44}
+td{padding:10px 16px;text-align:center;border-bottom:1px solid rgba(255,255,255,.06);color:#ccc}
+tr:hover td{background:rgba(255,255,255,.02)}
+
+/* Pseudocode */
+.pseudo{background:rgba(0,0,0,.4);border:1px solid #333;border-radius:12px;padding:20px 24px;font-family:'JetBrains Mono',monospace;font-size:.82rem;color:#98c379;white-space:pre-wrap;text-align:left;max-width:700px;line-height:1.6}
+.pseudo .kw{color:#c678dd}
+.pseudo .cm{color:#5c6370;font-style:italic}
+
+/* Highlight box */
+.highlight{background:linear-gradient(135deg,#667eea15,#764ba215);border:1px solid #667eea33;border-radius:12px;padding:24px 32px;text-align:center;margin:16px 0}
+.highlight .big{font-size:2.8rem;font-weight:900;color:#667eea;font-family:'JetBrains Mono',monospace}
+.highlight .lbl{font-size:.9rem;color:#888;margin-top:4px}
+
+/* Stats row */
+.stats-row{display:flex;gap:24px;margin:20px 0;flex-wrap:wrap;justify-content:center}
+.stat-box{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:20px 28px;text-align:center;min-width:140px}
+.stat-box .num{font-size:2rem;font-weight:900;font-family:'JetBrains Mono',monospace}
+.stat-box .lbl{font-size:.8rem;color:#888;margin-top:4px}
+.ga{color:#E06C75} .aco{color:#56B6C2} .hib{color:#667eea} .grn{color:#56D68C} .ylw{color:#D19A66}
+
+/* Progress bar */
+.progress{position:fixed;bottom:0;left:0;height:3px;background:linear-gradient(90deg,#667eea,#764ba2);transition:width .4s ease;z-index:100}
+
+/* Slide counter */
+.counter{position:fixed;bottom:16px;right:24px;font-family:'JetBrains Mono',monospace;font-size:.8rem;color:#555;z-index:100}
+
+/* Nav arrows */
+.nav{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);display:flex;gap:12px;z-index:100}
+.nav button{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:#888;width:40px;height:40px;border-radius:8px;cursor:pointer;font-size:1rem;transition:all .2s}
+.nav button:hover{background:#667eea33;border-color:#667eea;color:#fff}
+
+/* Animations */
+@keyframes fadeUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
+.slide.active .anim{animation:fadeUp .6s ease forwards}
+.slide.active .d1{animation-delay:.1s;opacity:0}
+.slide.active .d2{animation-delay:.25s;opacity:0}
+.slide.active .d3{animation-delay:.4s;opacity:0}
+.slide.active .d4{animation-delay:.55s;opacity:0}
+</style>
+</head>
+<body>
+
+<div class="deck" id="deck">
+
+<!-- SLIDE 1: Portada -->
+<div class="slide bg-grad active">
+  <h3 class="anim d1">Proyecto Final — Algoritmos Metaheurísticos</h3>
+  <h1 class="anim d2" style="font-size:2.8rem;max-width:900px;text-align:center">Optimización Inteligente de Recursos en la Nube</h1>
+  <p class="anim d3" style="text-align:center;margin:16px 0">Jonathan Ismael Corona Mendez — Universidad de Guadalajara, CUCosta — 18 de mayo de 2026</p>
+  <div class="anim d4">
+    <span class="tag">Algoritmo Genético</span>
+    <span class="tag">Colonia de Hormigas</span>
+    <span class="tag">Híbrido GA-ACO</span>
+    <span class="tag">Wilcoxon</span>
+  </div>
+</div>
+
+<!-- SLIDE 2: El Problema -->
+<div class="slide bg-dark">
+  <h3 class="anim d1">Planteamiento</h3>
+  <h2 class="anim d2">¿Cuál es el problema?</h2>
+  <div class="cols anim d3">
+    <div class="col">
+      <h4>Asignación de Recursos en la Nube</h4>
+      <p>Un datacenter con <b>6 servidores heterogéneos</b> recibe tareas con distintos requerimientos de CPU y RAM. ¿A cuál servidor va cada tarea?</p>
+      <ul style="margin-top:12px">
+        <li>Minimizar desbalance de carga</li>
+        <li>Reducir consumo energético</li>
+        <li>Evitar cuellos de botella</li>
+        <li>Respetar restricciones de capacidad</li>
+      </ul>
+    </div>
+    <div class="col">
+      <h4>¿Por qué es difícil? — Problema NP-duro</h4>
+      <p>No existe un algoritmo exacto que lo resuelva en tiempo razonable. El espacio de búsqueda crece de forma exponencial: con <b>n</b> tareas y <b>m</b> servidores, hay <b>m elevado a la n</b> soluciones posibles.</p>
+      <div class="highlight anim d4" style="max-width:500px;margin-top:12px">
+        <div class="big" style="font-size:1.5rem">6^60 = 4.8 × 10^46</div>
+        <div class="lbl">Un número de 46 dígitos de combinaciones</div>
+        <div class="lbl" style="margin-top:4px;color:#667eea">60 tareas × 6 servidores</div>
+      </div>
+      <p style="margin-top:12px;font-size:.9rem">Es imposible probarlas todas. Por eso se necesitan <b>metaheurísticas</b>: algoritmos inteligentes que encuentran buenas soluciones sin revisar todas las opciones.</p>
+    </div>
+  </div>
+</div>
+
+<!-- SLIDE 3: Fitness -->
+<div class="slide bg-accent">
+  <h3 class="anim d1">Función Objetivo</h3>
+  <h2 class="anim d2">Fitness — Menor = Mejor</h2>
+  <div class="equation anim d3">f(x) = 0.4 · Balance + 0.3 · Energía/100 + 0.3 · Tiempo·10 + Penalización</div>
+  <div class="cards anim d4" style="max-width:1000px;grid-template-columns:repeat(4,1fr)">
+    <div class="card"><div class="ico">⚖️</div><h4>Balance (40%)</h4><p>Desv. estándar del uso de CPU entre servidores</p></div>
+    <div class="card"><div class="ico">⚡</div><h4>Energía (30%)</h4><p>Watts totales del datacenter. Menos = mejor</p></div>
+    <div class="card"><div class="ico">⏱️</div><h4>Tiempo (30%)</h4><p>Servidor más saturado = cuello de botella</p></div>
+    <div class="card"><div class="ico">🚫</div><h4>Penalización</h4><p>Castigo por exceder CPU o RAM del servidor</p></div>
+  </div>
+</div>
+
+<!-- SLIDE 4: Algoritmo Genético -->
+<div class="slide bg-dark">
+  <h3 class="anim d1">Metaheurística 1</h3>
+  <h2 class="anim d2">Algoritmo Genético (GA)</h2>
+  <div class="cols anim d3">
+    <div class="col">
+      <h4>Inspiración: Evolución de Darwin</h4>
+      <p>Una población de soluciones evoluciona generación tras generación.</p>
+      <ul style="margin-top:12px">
+        <li><b>Selección por torneo</b> (k=5)</li>
+        <li><b>Cruce uniforme</b> (p=0.85)</li>
+        <li><b>Mutación aleatoria</b> (p=0.15)</li>
+        <li><b>Elitismo</b>: top 3 pasan directo</li>
+        <li>Población: 60 individuos, 150 generaciones</li>
+      </ul>
+    </div>
+    <div class="col">
+      <h4>Representación</h4>
+      <p style="font-family:'JetBrains Mono',monospace;font-size:.9rem;color:#98c379;margin-bottom:12px">
+        Individuo = [2, 0, 5, 1, 3, 0, 4, 2, ...]<br>
+        Gen[i] = servidor asignado a tarea i
+      </p>
+      <h4 style="margin-top:16px">Características</h4>
+      <ul>
+        <li><span class="grn">✓</span> Buena exploración global</li>
+        <li><span class="ga">✗</span> Se estanca en óptimos locales</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- SLIDE 5: ACO -->
+<div class="slide bg-grad">
+  <h3 class="anim d1">Metaheurística 2</h3>
+  <h2 class="anim d2">Colonia de Hormigas (ACO)</h2>
+  <div class="cols anim d3">
+    <div class="col">
+      <h4>Inspiración: Feromonas de hormigas</h4>
+      <p>Las hormigas depositan feromonas en los mejores caminos. Las siguientes hormigas siguen esas señales.</p>
+      <div class="equation" style="font-size:.95rem;margin-top:16px">Probabilidad = (feromona × capacidad libre) / total</div>
+      <p style="font-size:.85rem;margin-top:8px">Más feromona + más espacio libre = mayor probabilidad de elegir ese servidor</p>
+    </div>
+    <div class="col">
+      <h4>Parámetros</h4>
+      <ul>
+        <li>30 hormigas × 150 iteraciones</li>
+        <li>Evaporación: 30% por iteración</li>
+        <li>Depósito: Q/fitness (inversamente proporcional)</li>
+      </ul>
+      <h4 style="margin-top:16px">Características</h4>
+      <ul>
+        <li><span class="grn">✓</span> Buena intensificación</li>
+        <li><span class="ga">✗</span> Convergencia lenta al inicio</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- SLIDE 6: Híbrido -->
+<div class="slide bg-accent">
+  <h3 class="anim d1">Metaheurística 3</h3>
+  <h2 class="anim d2">Híbrido GA-ACO</h2>
+  <div class="cols anim d3">
+    <div class="col">
+      <h4>Combinación de ambos paradigmas</h4>
+      <ul>
+        <li><b>70% GA</b>: cruce + mutación guiada por feromonas</li>
+        <li><b>30% ACO</b>: construcción probabilística</li>
+        <li>Mutación NO aleatoria → usa feromonas</li>
+        <li>Búsqueda local cada 20 generaciones</li>
+        <li>Refinamiento final del mejor global</li>
+      </ul>
+      <div class="highlight" style="margin-top:16px">
+        <div style="font-size:1rem;color:#b0b0c0">Exploración (GA) + Intensificación (ACO) + Refinamiento (Local)</div>
+      </div>
+    </div>
+    <div class="col">
+      <h4>Parámetros</h4>
+      <ul>
+        <li>80 individuos × 150 iteraciones</li>
+        <li>Elitismo: top 5</li>
+        <li>Evaporación: 30%</li>
+      </ul>
+      <h4 style="margin-top:16px">Características</h4>
+      <ul>
+        <li><span class="grn">✓</span> Mejor fitness de los tres</li>
+        <li><span class="grn">✓</span> Exploración + intensificación</li>
+        <li><span class="grn">✓</span> Menos sensible a parámetros</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- SLIDE 7: Resultados -->
+<div class="slide bg-dark">
+  <h3 class="anim d1">Experimentación</h3>
+  <h2 class="anim d2">Resultados de Optimización</h2>
+  <div class="stats-row anim d3">
+    <div class="stat-box"><div class="num ylw">~8800</div><div class="lbl">Sin optimizar</div></div>
+    <div class="stat-box"><div class="num ga">~6722</div><div class="lbl">GA fitness</div></div>
+    <div class="stat-box"><div class="num aco">~6740</div><div class="lbl">ACO fitness</div></div>
+    <div class="stat-box"><div class="num hib">~6714</div><div class="lbl">Híbrido fitness</div></div>
+  </div>
+  <p class="anim d3" style="text-align:center;margin:12px 0">Comparación de carga antes vs después:</p>
+  <div class="cols anim d4" style="max-width:800px">
+    <div class="col" style="text-align:center">
+      <h4 style="color:#E06C75">Antes (usuario)</h4>
+      <p style="font-family:'JetBrains Mono';font-size:.9rem">S0: <span class="ga">120%</span> SATURADO<br>S1: 12%<br>S2: 0%<br>S3: 88%</p>
+    </div>
+    <div class="col" style="text-align:center">
+      <h4 style="color:#56D68C">Después (Híbrido)</h4>
+      <p style="font-family:'JetBrains Mono';font-size:.9rem">S0: <span class="grn">25%</span><br>S1: <span class="grn">30%</span><br>S2: <span class="grn">28%</span><br>S3: <span class="grn">17%</span></p>
+    </div>
+  </div>
+  <p class="anim d4" style="text-align:center;font-size:.9rem;color:#667eea;margin-top:8px">* Los valores exactos se generan en la demostración en vivo</p>
+</div>
+
+<!-- SLIDE 8: Wilcoxon -->
+<div class="slide bg-grad">
+  <h3 class="anim d1">Validación Estadística</h3>
+  <h2 class="anim d2">Prueba de Wilcoxon — 10 Corridas</h2>
+  <div class="anim d3" style="width:100%;max-width:900px">
+    <table>
+      <tr><th>Algoritmo</th><th>Media</th><th>Mejor</th><th>Peor</th><th>Desv. Std.</th></tr>
+      <tr><td class="ga" style="font-weight:700">GA</td><td>~24.4</td><td>~21</td><td>~28</td><td>~2.5</td></tr>
+      <tr><td class="aco" style="font-weight:700">ACO</td><td>~19.9</td><td>~18</td><td>~22</td><td>~1.3</td></tr>
+      <tr><td class="hib" style="font-weight:700">Híbrido</td><td>~12.7</td><td>~11</td><td>~15</td><td>~1.4</td></tr>
+    </table>
+    <table style="margin-top:20px">
+      <tr><th>Par</th><th>p-valor</th><th>¿Significativo?</th><th>Mejor</th></tr>
+      <tr><td>GA vs ACO</td><td>0.001953</td><td style="color:#56D68C">Sí ✓</td><td class="ga">GA</td></tr>
+      <tr><td>GA vs Híbrido</td><td>0.003906</td><td style="color:#56D68C">Sí ✓</td><td class="hib">Híbrido</td></tr>
+      <tr><td>ACO vs Híbrido</td><td>0.001953</td><td style="color:#56D68C">Sí ✓</td><td class="hib">Híbrido</td></tr>
+    </table>
+  </div>
+  <p class="anim d4" style="text-align:center;margin-top:12px">Con p &lt; 0.05, las diferencias <b>NO</b> son producto del azar.</p>
+</div>
+
+<!-- SLIDE 9: Sensibilidad -->
+<div class="slide bg-dark">
+  <h3 class="anim d1">Análisis de Sensibilidad</h3>
+  <h2 class="anim d2">¿Son los mejores parámetros?</h2>
+  <div class="cols anim d3">
+    <div class="col">
+      <h4>Tamaño de Población</h4>
+      <p>Se probó con 20, 40, 60, 80, 100 individuos (iteraciones fijas = 80)</p>
+      <ul style="margin-top:12px">
+        <li>20 → fitness alto (poca diversidad)</li>
+        <li><b>60 → punto de equilibrio</b></li>
+        <li>80-100 → rendimiento decreciente</li>
+      </ul>
+    </div>
+    <div class="col">
+      <h4>Número de Iteraciones</h4>
+      <p>Se probó con 30, 60, 100, 150, 200 (población fija = 60)</p>
+      <ul style="margin-top:12px">
+        <li>30 → no converge</li>
+        <li>100 → se estabiliza</li>
+        <li><b>150 → valor óptimo</b></li>
+        <li>200 → mejora insignificante</li>
+      </ul>
+    </div>
+  </div>
+  <div class="highlight anim d4" style="max-width:700px;margin-top:20px">
+    <div style="font-size:1.1rem;color:#fff;font-weight:700">Parámetros óptimos: <span class="hib">60 individuos</span> × <span class="hib">150 iteraciones</span></div>
+    <div class="lbl">Equilibrio entre calidad de solución y costo computacional</div>
+  </div>
+</div>
+
+<!-- SLIDE 10: Conclusiones -->
+<div class="slide bg-accent">
+  <h3 class="anim d1">Cierre</h3>
+  <h2 class="anim d2">Conclusiones</h2>
+  <div class="cards anim d3" style="grid-template-columns:1fr 1fr;max-width:900px">
+    <div class="card"><h4>1. Superan al baseline</h4><p>Las 3 metaheurísticas superan tanto la asignación manual como el greedy determinista.</p></div>
+    <div class="card"><h4>2. El Híbrido gana</h4><p>Combina exploración (GA) + intensificación (ACO) + refinamiento local = mejor fitness consistentemente.</p></div>
+    <div class="card"><h4>3. Validación rigurosa</h4><p>Wilcoxon con p&lt;0.05 confirma que las diferencias son estadísticamente significativas.</p></div>
+    <div class="card"><h4>4. Parámetros calibrados</h4><p>Análisis de sensibilidad identifica 60 individuos y 150 iteraciones como punto óptimo.</p></div>
+  </div>
+  <div class="anim d4" style="margin-top:24px">
+    <h4 style="color:#888;margin-bottom:8px">Trabajo Futuro</h4>
+    <p style="text-align:center;font-size:.95rem">NSGA-II (Pareto) · Migración dinámica · Escalabilidad · ML predictivo · Datos reales</p>
+  </div>
+</div>
+
+<!-- SLIDE 11: Proyecto en Línea -->
+<div class="slide bg-dark">
+  <h3 class="anim d1">Proyecto en Línea</h3>
+  <h2 class="anim d2">Pruébalo tú mismo</h2>
+  <p class="anim d3" style="text-align:center;font-size:1.2rem;margin:16px 0">Escanea el QR o entra al enlace</p>
+  <div class="anim d3" style="margin:20px 0">
+    <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=https://proyecto-metaheuristicas.onrender.com" alt="QR" style="width:200px;height:200px;border-radius:12px;border:2px solid #667eea">
+  </div>
+  <div class="highlight anim d4" style="max-width:600px">
+    <div class="big" style="font-size:1.4rem">proyecto-metaheuristicas.onrender.com</div>
+    <div class="lbl">Agrega tareas y observa la optimización en tiempo real</div>
+  </div>
+</div>
+
+</div><!-- /deck -->
+
+<div class="progress" id="progress"></div>
+<div class="counter" id="counter"></div>
+<div class="nav">
+  <button onclick="prev()" id="btn-prev">←</button>
+  <button onclick="next()" id="btn-next">→</button>
+</div>
+
+<script>
+const slides = document.querySelectorAll('.slide');
+let current = 0;
+const total = slides.length;
+
+function goTo(n) {
+  if (n < 0 || n >= total) return;
+  const old = slides[current];
+  old.classList.remove('active');
+  old.style.opacity = '0';
+  old.style.pointerEvents = 'none';
+  old.style.transform = n > current ? 'translateX(-40px)' : 'translateX(40px)';
+  current = n;
+  const now = slides[current];
+  now.style.transform = n > current ? 'translateX(40px)' : 'translateX(0)';
+  now.classList.add('active');
+  now.style.opacity = '1';
+  now.style.pointerEvents = 'all';
+  now.style.transform = 'translateX(0)';
+  document.getElementById('progress').style.width = ((current + 1) / total * 100) + '%';
+  document.getElementById('counter').textContent = (current + 1) + ' / ' + total;
+}
+
+function next() { goTo(current + 1); }
+function prev() { goTo(current - 1); }
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); next(); }
+  if (e.key === 'ArrowLeft') prev();
+});
+
+// Touch support
+let touchX = 0;
+document.addEventListener('touchstart', e => { touchX = e.touches[0].clientX; });
+document.addEventListener('touchend', e => {
+  const dx = e.changedTouches[0].clientX - touchX;
+  if (dx < -50) next();
+  if (dx > 50) prev();
+});
+
+goTo(0);
+</script>
+</body>
+</html>

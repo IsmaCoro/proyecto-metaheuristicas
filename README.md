@@ -89,10 +89,6 @@ ngrok http 5000
 - **Frontend:** HTML5 + CSS3 + JavaScript + Chart.js
 - **Túnel:** ngrok (opcional, para acceso remoto)
 
-## Autores
+## Autor
 
-- [Tu nombre aquí]
-
-## Licencia
-
-Proyecto académico — Universidad de Guadalajara, 2026
+- Jonathan Ismael Corona Mendez — Ingeniería en Computación, 8.° Semestre
