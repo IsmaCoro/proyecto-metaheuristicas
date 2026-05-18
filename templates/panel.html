@@ -16,6 +16,7 @@
     <div class="seccion">
         <div class="sec-titulo antes">DISTRIBUCION ACTUAL</div>
         <div class="grid-servidores" id="grid-actual"></div>
+        <div class="total-bar">Total de tareas: <strong id="total-tareas">0</strong></div>
 
         <details class="specs-panel">
             <summary class="btn-accion" style="display:inline-block;margin:0.5rem 0;cursor:pointer">Ver especificaciones de servidores</summary>
@@ -176,6 +177,7 @@
                 <div class="srv-pct" style="color:#666;font-size:0.75rem;font-family:'JetBrains Mono'">${pct.toFixed(0)}%</div>`;
             g.appendChild(d);
         }
+        document.getElementById('total-tareas').textContent = tar.reduce((a,b)=>a+b, 0);
     }
 
     async function optimizar() {
