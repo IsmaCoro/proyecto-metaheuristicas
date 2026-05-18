@@ -114,8 +114,8 @@
             actualizarBotonPausa();
             actualizarBotonCooldown();
             renderActual();
-            if (d.total !== lastTotal && d.total > 0) { lastTotal = d.total; optimizar(); }
-            if (d.total === 0) { lastTotal=0; hide('resultados'); show('vacio'); }
+            lastTotal = d.total;
+            if (d.total === 0) { hide('resultados'); show('vacio'); }
         } catch(e) {}
     }
 
