@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,6 +8,7 @@
     <link rel="stylesheet" href="/static/styles.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 </head>
+
 <body>
     <header class="encabezado">
         <h1><span class="acento">Proyecto Final</span> — Panel de Control</h1>
@@ -19,7 +21,8 @@
         <div class="total-bar">Total de tareas: <strong id="total-tareas">0</strong></div>
 
         <details class="specs-panel">
-            <summary class="btn-accion" style="display:inline-block;margin:0.5rem 0;cursor:pointer">Ver especificaciones de servidores</summary>
+            <summary class="btn-accion" style="display:inline-block;margin:0.5rem 0;cursor:pointer">Ver especificaciones
+                de servidores</summary>
             <table class="tabla" id="tbl-specs" style="margin-top:0.5rem"></table>
         </details>
 
@@ -38,15 +41,42 @@
             <div class="grid-servidores" id="grid-opt"></div>
 
             <div class="metricas-grid">
-                <div class="metrica-caja"><div class="etiqueta">Balance</div><div id="m-bal"></div></div>
-                <div class="metrica-caja"><div class="etiqueta">Energia</div><div id="m-ene"></div></div>
-                <div class="metrica-caja"><div class="etiqueta">Tiempo max.</div><div id="m-tmp"></div></div>
-                <div class="metrica-caja"><div class="etiqueta">Mejor algo.</div><div id="m-alg"></div></div>
-                <div class="metrica-caja"><div class="etiqueta">Fitness</div><div id="m-fit"></div></div>
-                <div class="metrica-caja"><div class="etiqueta">Greedy (baseline)</div><div id="m-gre"></div></div>
-                <div class="metrica-caja"><div class="etiqueta">Tiempo GA</div><div id="m-tga"></div></div>
-                <div class="metrica-caja"><div class="etiqueta">Tiempo ACO</div><div id="m-taco"></div></div>
-                <div class="metrica-caja"><div class="etiqueta">Tiempo Hibrido</div><div id="m-thib"></div></div>
+                <div class="metrica-caja">
+                    <div class="etiqueta">Balance</div>
+                    <div id="m-bal"></div>
+                </div>
+                <div class="metrica-caja">
+                    <div class="etiqueta">Energia</div>
+                    <div id="m-ene"></div>
+                </div>
+                <div class="metrica-caja">
+                    <div class="etiqueta">Tiempo max.</div>
+                    <div id="m-tmp"></div>
+                </div>
+                <div class="metrica-caja">
+                    <div class="etiqueta">Mejor algo.</div>
+                    <div id="m-alg"></div>
+                </div>
+                <div class="metrica-caja">
+                    <div class="etiqueta">Fitness</div>
+                    <div id="m-fit"></div>
+                </div>
+                <div class="metrica-caja">
+                    <div class="etiqueta">Greedy (baseline)</div>
+                    <div id="m-gre"></div>
+                </div>
+                <div class="metrica-caja">
+                    <div class="etiqueta">Tiempo GA</div>
+                    <div id="m-tga"></div>
+                </div>
+                <div class="metrica-caja">
+                    <div class="etiqueta">Tiempo ACO</div>
+                    <div id="m-taco"></div>
+                </div>
+                <div class="metrica-caja">
+                    <div class="etiqueta">Tiempo Hibrido</div>
+                    <div id="m-thib"></div>
+                </div>
             </div>
 
             <hr class="separador">
@@ -56,8 +86,12 @@
                 <button class="tab-btn" data-tab="stats" onclick="tab('stats')">Wilcoxon</button>
                 <button class="tab-btn" data-tab="sensi" onclick="tab('sensi')">Sensibilidad</button>
             </div>
-            <div class="tab-contenido activo" id="tab-carga"><div class="grafica-caja"><canvas id="c-carga"></canvas></div></div>
-            <div class="tab-contenido" id="tab-conv"><div class="grafica-caja"><canvas id="c-conv"></canvas></div></div>
+            <div class="tab-contenido activo" id="tab-carga">
+                <div class="grafica-caja"><canvas id="c-carga"></canvas></div>
+            </div>
+            <div class="tab-contenido" id="tab-conv">
+                <div class="grafica-caja"><canvas id="c-conv"></canvas></div>
+            </div>
             <div class="tab-contenido" id="tab-stats">
                 <p style="color:#888;margin-bottom:1rem">Ejecuta 10 corridas para comparar estadisticamente.</p>
                 <button class="btn-accion" id="btn-stats" onclick="analisis()">Ejecutar analisis (10 corridas)</button>
@@ -67,7 +101,8 @@
             </div>
             <div class="tab-contenido" id="tab-sensi">
                 <p style="color:#888;margin-bottom:1rem">Varia parametros clave para medir su impacto en el fitness.</p>
-                <button class="btn-accion" id="btn-sensi" onclick="sensibilidad()">Ejecutar analisis de sensibilidad</button>
+                <button class="btn-accion" id="btn-sensi" onclick="sensibilidad()">Ejecutar analisis de
+                    sensibilidad</button>
                 <div class="grafica-caja" style="margin-top:1rem"><canvas id="c-pob"></canvas></div>
                 <div class="grafica-caja" style="margin-top:1rem"><canvas id="c-iter"></canvas></div>
             </div>
@@ -80,18 +115,18 @@
     </div>
 
     <script>
-    const COL = {GA:'#E06C75', ACO:'#56B6C2', 'Híbrido':'#667eea'};
-    let caps=[], tar=[], ns=0, lastTotal=0, chConv=null, chCarga=null, chBox=null;
-    let pausado = false;
-    let cooldownOn = true;
-    let specsRendered = false;
+        const COL = { GA: '#E06C75', ACO: '#56B6C2', 'Híbrido': '#667eea' };
+        let caps = [], tar = [], ns = 0, lastTotal = 0, chConv = null, chCarga = null, chBox = null;
+        let pausado = false;
+        let cooldownOn = true;
+        let specsRendered = false;
 
-    function renderSpecs(servidores) {
-        if (specsRendered || !servidores) return;
-        specsRendered = true;
-        let h = '<tr><th>Servidor</th><th>Tipo</th><th>CPUs</th><th>RAM</th><th>W/CPU</th><th>W base</th><th>W max</th></tr>';
-        for (const s of servidores) {
-            h += `<tr>
+        function renderSpecs(servidores) {
+            if (specsRendered || !servidores) return;
+            specsRendered = true;
+            let h = '<tr><th>Servidor</th><th>Tipo</th><th>CPUs</th><th>RAM</th><th>W/CPU</th><th>W base</th><th>W max</th></tr>';
+            for (const s of servidores) {
+                h += `<tr>
                 <td>${s.id}</td>
                 <td>${s.tipo}</td>
                 <td>${s.cpu}</td>
@@ -100,217 +135,262 @@
                 <td>${s.watts_base}W</td>
                 <td>${s.watts_max}W</td>
             </tr>`;
+            }
+            document.getElementById('tbl-specs').innerHTML = h;
         }
-        document.getElementById('tbl-specs').innerHTML = h;
-    }
 
-    async function poll() {
-        try {
-            const r = await fetch('/estado');
-            const d = await r.json();
-            tar = d.tareas; caps = d.capacidades; ns = tar.length;
-            pausado = d.pausado;
-            cooldownOn = d.cooldown;
-            renderSpecs(d.servidores);
-            actualizarBotonPausa();
-            actualizarBotonCooldown();
-            renderActual();
-            lastTotal = d.total;
-            if (d.total === 0) { hide('resultados'); show('vacio'); }
-        } catch(e) {}
-    }
-
-    function actualizarBotonPausa() {
-        const btn = document.getElementById('btn-pausa');
-        if (pausado) {
-            btn.textContent = 'Reanudar entradas';
-            btn.style.background = '#2d6a4f';
-            btn.style.borderColor = '#56D68C';
-            btn.style.color = '#56D68C';
-        } else {
-            btn.textContent = 'Pausar entradas';
-            btn.style.background = '';
-            btn.style.borderColor = '';
-            btn.style.color = '';
+        async function poll() {
+            try {
+                const r = await fetch('/estado');
+                const d = await r.json();
+                tar = d.tareas; caps = d.capacidades; ns = tar.length;
+                pausado = d.pausado;
+                cooldownOn = d.cooldown;
+                renderSpecs(d.servidores);
+                actualizarBotonPausa();
+                actualizarBotonCooldown();
+                renderActual();
+                lastTotal = d.total;
+                if (d.total === 0) { hide('resultados'); show('vacio'); }
+            } catch (e) { }
         }
-    }
 
-    function actualizarBotonCooldown() {
-        const btn = document.getElementById('btn-cd');
-        if (cooldownOn) {
-            btn.textContent = 'Timer: ON (10s)';
-            btn.style.background = '';
-            btn.style.borderColor = '';
-            btn.style.color = '';
-        } else {
-            btn.textContent = 'Timer: OFF (libre)';
-            btn.style.background = '#5c2d2d';
-            btn.style.borderColor = '#E06C75';
-            btn.style.color = '#E06C75';
+        function actualizarBotonPausa() {
+            const btn = document.getElementById('btn-pausa');
+            if (pausado) {
+                btn.textContent = 'Reanudar entradas';
+                btn.style.background = '#2d6a4f';
+                btn.style.borderColor = '#56D68C';
+                btn.style.color = '#56D68C';
+            } else {
+                btn.textContent = 'Pausar entradas';
+                btn.style.background = '';
+                btn.style.borderColor = '';
+                btn.style.color = '';
+            }
         }
-    }
 
-    async function togglePausa() {
-        await fetch('/pausar', {method:'POST'});
-        poll();
-    }
+        function actualizarBotonCooldown() {
+            const btn = document.getElementById('btn-cd');
+            if (cooldownOn) {
+                btn.textContent = 'Timer: ON (10s)';
+                btn.style.background = '';
+                btn.style.borderColor = '';
+                btn.style.color = '';
+            } else {
+                btn.textContent = 'Timer: OFF (libre)';
+                btn.style.background = '#5c2d2d';
+                btn.style.borderColor = '#E06C75';
+                btn.style.color = '#E06C75';
+            }
+        }
 
-    async function toggleCooldown() {
-        await fetch('/cooldown', {method:'POST'});
-        poll();
-    }
+        async function togglePausa() {
+            await fetch('/pausar', { method: 'POST' });
+            poll();
+        }
 
-    function renderActual() {
-        const g = document.getElementById('grid-actual'); g.innerHTML = '';
-        for (let j=0; j<ns; j++) {
-            const t=tar[j], cap=caps[j], pct=cap>0?(t/cap)*100:0;
-            let cl='', estado='normal', cc='verde';
-            if (pct>85) { cl='saturado'; estado='critico'; cc='rojo'; }
-            else if (pct>60) { estado='medio'; cc='amarillo'; }
-            else if (t>0) estado='activo';
+        async function toggleCooldown() {
+            await fetch('/cooldown', { method: 'POST' });
+            poll();
+        }
 
-            const d=document.createElement('div'); d.className=`servidor ${cl}`;
-            d.innerHTML=`<div class="nombre">S${j}</div>
+        function renderActual() {
+            const g = document.getElementById('grid-actual'); g.innerHTML = '';
+            for (let j = 0; j < ns; j++) {
+                const t = tar[j], cap = caps[j], pct = cap > 0 ? (t / cap) * 100 : 0;
+                let cl = '', estado = 'normal', cc = 'verde';
+                if (pct > 85) { cl = 'saturado'; estado = 'critico'; cc = 'rojo'; }
+                else if (pct > 60) { estado = 'medio'; cc = 'amarillo'; }
+                else if (t > 0) estado = 'activo';
+
+                const d = document.createElement('div'); d.className = `servidor ${cl}`;
+                d.innerHTML = `<div class="nombre">S${j}</div>
                 <div class="info">${cap} CPUs</div>
-                <div class="conteo" style="color:${cc==='rojo'?'#E06C75':cc==='amarillo'?'#D19A66':'#56D68C'}">${t}</div>
-                <div class="barra-fondo"><div class="barra-relleno" style="width:${Math.min(pct,100)}%;background:${cc==='rojo'?'#c1121f':cc==='amarillo'?'#e09f3e':'#2d6a4f'}"></div></div>
+                <div class="conteo" style="color:${cc === 'rojo' ? '#E06C75' : cc === 'amarillo' ? '#D19A66' : '#56D68C'}">${t}</div>
+                <div class="barra-fondo"><div class="barra-relleno" style="width:${Math.min(pct, 100)}%;background:${cc === 'rojo' ? '#c1121f' : cc === 'amarillo' ? '#e09f3e' : '#2d6a4f'}"></div></div>
                 <div class="srv-pct" style="color:#666;font-size:0.75rem;font-family:'JetBrains Mono'">${pct.toFixed(0)}%</div>`;
-            g.appendChild(d);
+                g.appendChild(d);
+            }
+            document.getElementById('total-tareas').textContent = tar.reduce((a, b) => a + b, 0);
         }
-        document.getElementById('total-tareas').textContent = tar.reduce((a,b)=>a+b, 0);
-    }
 
-    async function optimizar() {
-        if (tar.reduce((a,b)=>a+b,0)===0) return;
-        document.getElementById('cargando').classList.add('visible');
-        try {
-            const r = await fetch('/optimizar',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'});
-            const d = await r.json();
-            mostrar(d);
-        } catch(e) {}
-        document.getElementById('cargando').classList.remove('visible');
-    }
+        async function optimizar() {
+            if (tar.reduce((a, b) => a + b, 0) === 0) return;
+            document.getElementById('cargando').classList.add('visible');
+            try {
+                const r = await fetch('/optimizar', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' });
+                const d = await r.json();
+                mostrar(d);
+            } catch (e) { }
+            document.getElementById('cargando').classList.remove('visible');
+        }
 
-    function mostrar(d) {
-        show('resultados'); hide('vacio');
-        const g=document.getElementById('grid-opt'); g.innerHTML='';
-        for(let j=0;j<ns;j++){
-            const t=d.tareas_optimizadas[j],cap=caps[j],pct=cap>0?(t/cap)*100:0;
-            let bg='#2d6a4f';
-            if(pct>85) bg='#c1121f'; else if(pct>60) bg='#e09f3e';
-            const el=document.createElement('div');el.className='servidor ok';
-            el.innerHTML=`<div class="nombre">S${j}</div>
+        function mostrar(d) {
+            show('resultados'); hide('vacio');
+            const g = document.getElementById('grid-opt'); g.innerHTML = '';
+            for (let j = 0; j < ns; j++) {
+                const t = d.tareas_optimizadas[j], cap = caps[j], pct = cap > 0 ? (t / cap) * 100 : 0;
+                let bg = '#2d6a4f';
+                if (pct > 85) bg = '#c1121f'; else if (pct > 60) bg = '#e09f3e';
+                const el = document.createElement('div'); el.className = 'servidor ok';
+                el.innerHTML = `<div class="nombre">S${j}</div>
                 <div class="info">${cap} CPUs</div>
                 <div class="conteo" style="color:#56D68C">${t}</div>
-                <div class="barra-fondo"><div class="barra-relleno" style="width:${Math.min(pct,100)}%;background:${bg}"></div></div>
+                <div class="barra-fondo"><div class="barra-relleno" style="width:${Math.min(pct, 100)}%;background:${bg}"></div></div>
                 <div class="srv-pct" style="color:#666;font-size:0.75rem;font-family:'JetBrains Mono'">${pct.toFixed(0)}%</div>`;
-            g.appendChild(el);
-        }
-        const a=d.antes, dp=d.despues;
-        document.getElementById('m-bal').innerHTML=`<span class="val-antes">${a.balance}</span> <span class="flecha">&rarr;</span> <span class="val-despues">${dp.balance}</span>`;
-        document.getElementById('m-ene').innerHTML=`<span class="val-antes">${a.energia}W</span> <span class="flecha">&rarr;</span> <span class="val-despues">${dp.energia}W</span>`;
-        document.getElementById('m-tmp').innerHTML=`<span class="val-antes">${a.tiempo_max}s</span> <span class="flecha">&rarr;</span> <span class="val-despues">${dp.tiempo_max}s</span>`;
-        document.getElementById('m-alg').innerHTML=`<span class="val-despues">${d.mejor_algoritmo}</span>`;
-        document.getElementById('m-fit').innerHTML=`<span class="val-antes">${a.fitness}</span> <span class="flecha">&rarr;</span> <span class="val-despues">${dp.fitness}</span>`;
-        document.getElementById('m-gre').innerHTML=`<span style="color:#D19A66;font-family:'JetBrains Mono';font-size:1rem">${d.greedy.fitness}</span>`;
-        document.getElementById('m-tga').innerHTML=`<span style="color:#E06C75;font-family:'JetBrains Mono';font-size:1rem">${d.algoritmos.GA.tiempo}s</span>`;
-        document.getElementById('m-taco').innerHTML=`<span style="color:#56B6C2;font-family:'JetBrains Mono';font-size:1rem">${d.algoritmos.ACO.tiempo}s</span>`;
-        document.getElementById('m-thib').innerHTML=`<span style="color:#667eea;font-family:'JetBrains Mono';font-size:1rem">${d.algoritmos['Híbrido'].tiempo}s</span>`;
-        grafCarga(d); grafConv(d.algoritmos);
-    }
-
-    function grafCarga(d) {
-        const ctx=document.getElementById('c-carga').getContext('2d');
-        if(chCarga) chCarga.destroy();
-        chCarga=new Chart(ctx,{type:'bar',data:{labels:caps.map((_,j)=>`S${j}`),datasets:[
-            {label:'Actual',data:tar.map((t,j)=>((t/caps[j])*100).toFixed(1)),backgroundColor:'#E06C7588',borderColor:'#E06C75',borderWidth:1},
-            {label:`Optimizado (${d.mejor_algoritmo})`,data:d.tareas_optimizadas.map((t,j)=>((t/caps[j])*100).toFixed(1)),backgroundColor:'#56D68C88',borderColor:'#56D68C',borderWidth:1}
-        ]},options:{responsive:true,plugins:{legend:{labels:{color:'#CCC'}},title:{display:true,text:'Carga por Servidor (%)',color:'#CCC',font:{size:14}}},
-            scales:{x:{ticks:{color:'#888'},grid:{color:'#1E2028'}},y:{ticks:{color:'#666'},grid:{color:'#1E2028'},max:150}}}});
-    }
-
-    function grafConv(algos) {
-        const ctx=document.getElementById('c-conv').getContext('2d');
-        if(chConv) chConv.destroy();
-        const ds=[];
-        for(const[k,v]of Object.entries(algos))
-            ds.push({label:`${k} (${v.fitness})`,data:v.convergencia,borderColor:COL[k],borderWidth:2,pointRadius:0,tension:0.3});
-        chConv=new Chart(ctx,{type:'line',data:{labels:ds[0].data.map((_,i)=>i),datasets:ds},
-            options:{responsive:true,plugins:{legend:{labels:{color:'#CCC'}},title:{display:true,text:'Convergencia',color:'#CCC',font:{size:14}}},
-            scales:{x:{ticks:{color:'#666'},grid:{color:'#1E2028'}},y:{ticks:{color:'#666'},grid:{color:'#1E2028'}}}}});
-    }
-
-    async function reiniciar() { await fetch('/reiniciar',{method:'POST'}); lastTotal=0; hide('resultados'); show('vacio'); poll(); }
-
-    function tab(n) {
-        document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('activo'));
-        document.querySelectorAll('.tab-contenido').forEach(c=>c.classList.remove('activo'));
-        document.querySelector(`[data-tab="${n}"]`).classList.add('activo');
-        document.getElementById(`tab-${n}`).classList.add('activo');
-    }
-
-    async function analisis() {
-        const btn=document.getElementById('btn-stats');
-        btn.disabled=true; btn.textContent='Ejecutando...';
-        try {
-            const r=await fetch('/analisis',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'});
-            const d=await r.json();
-            let h='<table class="tabla"><tr><th>Algoritmo</th><th>Media</th><th>Mejor</th><th>Peor</th><th>Desv.Std</th></tr>';
-            for(const[k,v]of Object.entries(d.estadisticas)) h+=`<tr><td>${k}</td><td>${v.media}</td><td>${v.mejor}</td><td>${v.peor}</td><td>${v.desv_std}</td></tr>`;
-            h+='</table>'; document.getElementById('tbl-stats').innerHTML=h;
-            if(d.wilcoxon.length>0){
-                let w='<table class="tabla"><tr><th>Par</th><th>Prueba</th><th>p-valor</th><th>Sig.</th><th>Mejor</th></tr>';
-                for(const r of d.wilcoxon) w+=`<tr><td>${r.par}</td><td>${r.prueba}</td><td>${r.p_valor}</td><td>${r.significativo?'Si':'No'}</td><td>${r.mejor||'—'}</td></tr>`;
-                w+='</table>'; document.getElementById('tbl-wilcoxon').innerHTML=w;
+                g.appendChild(el);
             }
-            const ctx=document.getElementById('c-box').getContext('2d');
-            if(chBox) chBox.destroy();
-            const lbl=Object.keys(d.estadisticas);
-            chBox=new Chart(ctx,{type:'bar',data:{labels:lbl,datasets:[
-                {label:'Mejor',data:lbl.map(k=>d.estadisticas[k].mejor),backgroundColor:lbl.map(k=>COL[k]+'44'),borderColor:lbl.map(k=>COL[k]),borderWidth:1},
-                {label:'Media',data:lbl.map(k=>d.estadisticas[k].media),backgroundColor:lbl.map(k=>COL[k]+'88'),borderColor:lbl.map(k=>COL[k]),borderWidth:1},
-                {label:'Peor',data:lbl.map(k=>d.estadisticas[k].peor),backgroundColor:lbl.map(k=>COL[k]+'CC'),borderColor:lbl.map(k=>COL[k]),borderWidth:1}
-            ]},options:{responsive:true,plugins:{legend:{labels:{color:'#CCC'}},title:{display:true,text:'Mejor / Media / Peor',color:'#CCC',font:{size:14}}},
-                scales:{x:{ticks:{color:'#888'},grid:{color:'#1E2028'}},y:{ticks:{color:'#666'},grid:{color:'#1E2028'}}}}});
-        } catch(e){}
-        btn.disabled=false; btn.textContent='Ejecutar analisis (10 corridas)';
-    }
+            const a = d.antes, dp = d.despues;
+            document.getElementById('m-bal').innerHTML = `<span class="val-antes">${a.balance}</span> <span class="flecha">&rarr;</span> <span class="val-despues">${dp.balance}</span>`;
+            document.getElementById('m-ene').innerHTML = `<span class="val-antes">${a.energia}W</span> <span class="flecha">&rarr;</span> <span class="val-despues">${dp.energia}W</span>`;
+            document.getElementById('m-tmp').innerHTML = `<span class="val-antes">${a.tiempo_max}s</span> <span class="flecha">&rarr;</span> <span class="val-despues">${dp.tiempo_max}s</span>`;
+            document.getElementById('m-alg').innerHTML = `<span class="val-despues">${d.mejor_algoritmo}</span>`;
+            document.getElementById('m-fit').innerHTML = `<span class="val-antes">${a.fitness}</span> <span class="flecha">&rarr;</span> <span class="val-despues">${dp.fitness}</span>`;
+            document.getElementById('m-gre').innerHTML = `<span style="color:#D19A66;font-family:'JetBrains Mono';font-size:1rem">${d.greedy.fitness}</span>`;
+            document.getElementById('m-tga').innerHTML = `<span style="color:#E06C75;font-family:'JetBrains Mono';font-size:1rem">${d.algoritmos.GA.tiempo}s</span>`;
+            document.getElementById('m-taco').innerHTML = `<span style="color:#56B6C2;font-family:'JetBrains Mono';font-size:1rem">${d.algoritmos.ACO.tiempo}s</span>`;
+            document.getElementById('m-thib').innerHTML = `<span style="color:#667eea;font-family:'JetBrains Mono';font-size:1rem">${d.algoritmos['Híbrido'].tiempo}s</span>`;
+            grafCarga(d); grafConv(d.algoritmos);
+        }
 
-    let chPob=null, chIter=null;
-    async function sensibilidad() {
-        const btn=document.getElementById('btn-sensi');
-        btn.disabled=true; btn.textContent='Ejecutando (esto tarda ~1 min)...';
-        try {
-            const r=await fetch('/sensibilidad',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'});
-            const d=await r.json();
-            const ctx1=document.getElementById('c-pob').getContext('2d');
-            if(chPob) chPob.destroy();
-            chPob=new Chart(ctx1,{type:'line',data:{labels:d.poblacion.valores,datasets:
-                Object.entries(d.poblacion.resultados).map(([k,v])=>({
-                    label:k, data:v, borderColor:COL[k], borderWidth:2, pointRadius:4, tension:0.3
-                }))
-            },options:{responsive:true,plugins:{legend:{labels:{color:'#CCC'}},
-                title:{display:true,text:'Sensibilidad: Fitness vs Tamano de Poblacion',color:'#CCC',font:{size:14}}},
-                scales:{x:{title:{display:true,text:'Tamano de poblacion',color:'#888'},ticks:{color:'#888'},grid:{color:'#1E2028'}},
-                        y:{title:{display:true,text:'Fitness (menor = mejor)',color:'#888'},ticks:{color:'#666'},grid:{color:'#1E2028'}}}}});
-            const ctx2=document.getElementById('c-iter').getContext('2d');
-            if(chIter) chIter.destroy();
-            chIter=new Chart(ctx2,{type:'line',data:{labels:d.iteraciones.valores,datasets:
-                Object.entries(d.iteraciones.resultados).map(([k,v])=>({
-                    label:k, data:v, borderColor:COL[k], borderWidth:2, pointRadius:4, tension:0.3
-                }))
-            },options:{responsive:true,plugins:{legend:{labels:{color:'#CCC'}},
-                title:{display:true,text:'Sensibilidad: Fitness vs Iteraciones',color:'#CCC',font:{size:14}}},
-                scales:{x:{title:{display:true,text:'Numero de iteraciones',color:'#888'},ticks:{color:'#888'},grid:{color:'#1E2028'}},
-                        y:{title:{display:true,text:'Fitness (menor = mejor)',color:'#888'},ticks:{color:'#666'},grid:{color:'#1E2028'}}}}});
-        } catch(e){ console.error(e); }
-        btn.disabled=false; btn.textContent='Ejecutar analisis de sensibilidad';
-    }
+        function grafCarga(d) {
+            const ctx = document.getElementById('c-carga').getContext('2d');
+            if (chCarga) chCarga.destroy();
+            chCarga = new Chart(ctx, {
+                type: 'bar', data: {
+                    labels: caps.map((_, j) => `S${j}`), datasets: [
+                        { label: 'Actual', data: tar.map((t, j) => ((t / caps[j]) * 100).toFixed(1)), backgroundColor: '#E06C7588', borderColor: '#E06C75', borderWidth: 1 },
+                        { label: `Optimizado (${d.mejor_algoritmo})`, data: d.tareas_optimizadas.map((t, j) => ((t / caps[j]) * 100).toFixed(1)), backgroundColor: '#56D68C88', borderColor: '#56D68C', borderWidth: 1 }
+                    ]
+                }, options: {
+                    responsive: true, plugins: { legend: { labels: { color: '#CCC' } }, title: { display: true, text: 'Carga por Servidor (%)', color: '#CCC', font: { size: 14 } } },
+                    scales: { x: { ticks: { color: '#888' }, grid: { color: '#1E2028' } }, y: { ticks: { color: '#666' }, grid: { color: '#1E2028' }, max: 150 } }
+                }
+            });
+        }
 
-    function show(id){document.getElementById(id).style.display='block';}
-    function hide(id){document.getElementById(id).style.display='none';}
+        function grafConv(algos) {
+            const ctx = document.getElementById('c-conv').getContext('2d');
+            if (chConv) chConv.destroy();
+            const ds = [];
+            for (const [k, v] of Object.entries(algos))
+                ds.push({ label: `${k} (${v.fitness})`, data: v.convergencia, borderColor: COL[k], borderWidth: 2, pointRadius: 0, tension: 0.3 });
+            chConv = new Chart(ctx, {
+                type: 'line', data: { labels: ds[0].data.map((_, i) => i), datasets: ds },
+                options: {
+                    responsive: true, plugins: { legend: { labels: { color: '#CCC' } }, title: { display: true, text: 'Convergencia', color: '#CCC', font: { size: 14 } } },
+                    scales: { x: { ticks: { color: '#666' }, grid: { color: '#1E2028' } }, y: { ticks: { color: '#666' }, grid: { color: '#1E2028' } } }
+                }
+            });
+        }
 
-    poll(); setInterval(poll, 2000);
+        async function reiniciar() { await fetch('/reiniciar', { method: 'POST' }); lastTotal = 0; hide('resultados'); show('vacio'); poll(); }
+
+        function tab(n) {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('activo'));
+            document.querySelectorAll('.tab-contenido').forEach(c => c.classList.remove('activo'));
+            document.querySelector(`[data-tab="${n}"]`).classList.add('activo');
+            document.getElementById(`tab-${n}`).classList.add('activo');
+        }
+
+        async function analisis() {
+            const btn = document.getElementById('btn-stats');
+            btn.disabled = true; btn.textContent = 'Ejecutando...';
+            try {
+                const r = await fetch('/analisis', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' });
+                const d = await r.json();
+                let h = '<table class="tabla"><tr><th>Algoritmo</th><th>Media</th><th>Mejor</th><th>Peor</th><th>Desv.Std</th></tr>';
+                for (const [k, v] of Object.entries(d.estadisticas)) h += `<tr><td>${k}</td><td>${v.media}</td><td>${v.mejor}</td><td>${v.peor}</td><td>${v.desv_std}</td></tr>`;
+                h += '</table>'; document.getElementById('tbl-stats').innerHTML = h;
+                if (d.wilcoxon.length > 0) {
+                    let w = '<table class="tabla"><tr><th>Par</th><th>Prueba</th><th>p-valor</th><th>Sig.</th><th>Mejor</th></tr>';
+                    for (const r of d.wilcoxon) w += `<tr><td>${r.par}</td><td>${r.prueba}</td><td>${r.p_valor}</td><td>${r.significativo ? 'Si' : 'No'}</td><td>${r.mejor || '—'}</td></tr>`;
+                    w += '</table>'; document.getElementById('tbl-wilcoxon').innerHTML = w;
+                }
+                const ctx = document.getElementById('c-box').getContext('2d');
+                if (chBox) chBox.destroy();
+                const lbl = Object.keys(d.estadisticas);
+                chBox = new Chart(ctx, {
+                    type: 'bar', data: {
+                        labels: lbl, datasets: [
+                            { label: 'Mejor', data: lbl.map(k => d.estadisticas[k].mejor), backgroundColor: lbl.map(k => COL[k] + '44'), borderColor: lbl.map(k => COL[k]), borderWidth: 1 },
+                            { label: 'Media', data: lbl.map(k => d.estadisticas[k].media), backgroundColor: lbl.map(k => COL[k] + '88'), borderColor: lbl.map(k => COL[k]), borderWidth: 1 },
+                            { label: 'Peor', data: lbl.map(k => d.estadisticas[k].peor), backgroundColor: lbl.map(k => COL[k] + 'CC'), borderColor: lbl.map(k => COL[k]), borderWidth: 1 }
+                        ]
+                    }, options: {
+                        responsive: true, plugins: { legend: { labels: { color: '#CCC' } }, title: { display: true, text: 'Mejor / Media / Peor', color: '#CCC', font: { size: 14 } } },
+                        scales: { x: { ticks: { color: '#888' }, grid: { color: '#1E2028' } }, y: { ticks: { color: '#666' }, grid: { color: '#1E2028' } } }
+                    }
+                });
+            } catch (e) { }
+            btn.disabled = false; btn.textContent = 'Ejecutar analisis (10 corridas)';
+        }
+
+        let chPob = null, chIter = null;
+        async function sensibilidad() {
+            const btn = document.getElementById('btn-sensi');
+            btn.disabled = true; btn.textContent = 'Ejecutando (esto tarda ~1 min)...';
+            try {
+                const r = await fetch('/sensibilidad', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' });
+                const d = await r.json();
+                const ctx1 = document.getElementById('c-pob').getContext('2d');
+                if (chPob) chPob.destroy();
+                chPob = new Chart(ctx1, {
+                    type: 'line', data: {
+                        labels: d.poblacion.valores, datasets:
+                            Object.entries(d.poblacion.resultados).map(([k, v]) => ({
+                                label: k, data: v, borderColor: COL[k], borderWidth: 2, pointRadius: 4, tension: 0.3
+                            }))
+                    }, options: {
+                        responsive: true, plugins: {
+                            legend: { labels: { color: '#CCC' } },
+                            title: { display: true, text: 'Sensibilidad: Fitness vs Tamano de Poblacion', color: '#CCC', font: { size: 14 } }
+                        },
+                        scales: {
+                            x: { title: { display: true, text: 'Tamaño de poblacion', color: '#888' }, ticks: { color: '#888' }, grid: { color: '#1E2028' } },
+                            y: { title: { display: true, text: 'Fitness (menor = mejor)', color: '#888' }, ticks: { color: '#666' }, grid: { color: '#1E2028' } }
+                        }
+                    }
+                });
+                const ctx2 = document.getElementById('c-iter').getContext('2d');
+                if (chIter) chIter.destroy();
+                chIter = new Chart(ctx2, {
+                    type: 'line', data: {
+                        labels: d.iteraciones.valores, datasets:
+                            Object.entries(d.iteraciones.resultados).map(([k, v]) => ({
+                                label: k, data: v, borderColor: COL[k], borderWidth: 2, pointRadius: 4, tension: 0.3
+                            }))
+                    }, options: {
+                        responsive: true, plugins: {
+                            legend: { labels: { color: '#CCC' } },
+                            title: { display: true, text: 'Sensibilidad: Fitness vs Iteraciones', color: '#CCC', font: { size: 14 } }
+                        },
+                        scales: {
+                            x: { title: { display: true, text: 'Numero de iteraciones', color: '#888' }, ticks: { color: '#888' }, grid: { color: '#1E2028' } },
+                            y: { title: { display: true, text: 'Fitness (menor = mejor)', color: '#888' }, ticks: { color: '#666' }, grid: { color: '#1E2028' } }
+                        }
+                    }
+                });
+            } catch (e) { console.error(e); }
+            btn.disabled = false; btn.textContent = 'Ejecutar analisis de sensibilidad';
+        }
+
+        function show(id) { document.getElementById(id).style.display = 'block'; }
+        function hide(id) { document.getElementById(id).style.display = 'none'; }
+
+        // ── Optimización automática ──
+        //
+        // setInterval(async () => {
+        //     if (tar.reduce((a,b) => a+b, 0) > 0) {
+        //         const r = await fetch('/optimizar', {method:'POST', headers:{'Content-Type':'application/json'}, body:'{}'});
+        //         const d = await r.json();
+        //         mostrar(d);
+        //     }
+        // }, 10000);
+
+        poll(); setInterval(poll, 2000);
     </script>
 </body>
+
 </html>

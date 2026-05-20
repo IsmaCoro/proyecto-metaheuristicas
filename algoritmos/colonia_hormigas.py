@@ -20,6 +20,7 @@ class ColoniaHormigas:
         self.Q = Q
 
     def _inicializar_feromonas(self):
+        # Matriz [tareas x servidores], todas iguales al inicio
         return np.ones((self.problema.n_tareas, self.problema.n_servidores)) \
                / self.problema.n_servidores
 
@@ -27,48 +28,48 @@ class ColoniaHormigas:
         # Favorece servidores con más espacio libre
         srv = self.problema.servidores[srv_idx]
         tarea = self.problema.tareas[tarea_idx]
-        libre = srv["cpu_total"] - carga_actual[srv_idx]
+        libre = srv["cpu_total"] - carga_actual[srv_idx]  # espacio disponible
         if libre < tarea["cpu"]:
-            return 0.01
-        return libre / srv["cpu_total"]
+            return 0.01  # no cabe, penalizar
+        return libre / srv["cpu_total"]  # fraccion de espacio libre (0 a 1)
 
     def _construir_solucion(self, feromonas):
-        # Cada hormiga asigna tarea por tarea usando prob ∝ τ^α · η^β
+        # Cada hormiga asigna tarea por tarea.
         asig = []
         carga = [0] * self.problema.n_servidores
 
         for i in range(self.problema.n_tareas):
             probs = []
             for j in range(self.problema.n_servidores):
-                tau = feromonas[i][j] ** self.alfa
-                eta = self._heuristica(i, j, carga) ** self.beta
-                probs.append(tau * eta)
+                tau = feromonas[i][j] ** self.alfa  # feromona (memoria colectiva)
+                eta = self._heuristica(i, j, carga) ** self.beta  # heuristica (espacio libre)
+                probs.append(tau * eta)  # probabilidad sin normalizar
 
             total = sum(probs)
             if total == 0:
                 elegido = random.randint(0, self.problema.n_servidores - 1)
             else:
-                probs = [p / total for p in probs]
-                elegido = int(np.random.choice(range(self.problema.n_servidores), p=probs))
+                probs = [p / total for p in probs]  # normalizar para que sumen 1
+                elegido = int(np.random.choice(range(self.problema.n_servidores), p=probs))  # ruleta
 
             asig.append(elegido)
             carga[elegido] += self.problema.tareas[i]["cpu"]
         return asig
 
     def _actualizar_feromonas(self, feromonas, soluciones, fitness_vals):
-        feromonas *= (1 - self.evaporacion)
+        feromonas *= (1 - self.evaporacion)  # evaporacion: se pierde 30%
         for asig, fit in zip(soluciones, fitness_vals):
             if fit > 0:
-                deposito = self.Q / fit
+                deposito = self.Q / fit  # mejor fitness = mas deposito
                 for i, srv in enumerate(asig):
-                    feromonas[i][srv] += deposito
+                    feromonas[i][srv] += deposito  # reforzar buenas asignaciones
         return feromonas
 
     def ejecutar(self):
         inicio = time.time()
-        feromonas = self._inicializar_feromonas()
+        feromonas = self._inicializar_feromonas()  # feromonas uniformes al inicio
         mejor_asig, mejor_fitness = None, float('inf')
-        convergencia = []
+        convergencia = []  # para la grafica de convergencia
 
         for it in range(self.n_iteraciones):
             soluciones, fitness_vals = [], []
@@ -82,8 +83,8 @@ class ColoniaHormigas:
                     mejor_fitness = fit
                     mejor_asig = asig[:]
 
-            feromonas = self._actualizar_feromonas(feromonas, soluciones, fitness_vals)
-            convergencia.append(mejor_fitness)
+            feromonas = self._actualizar_feromonas(feromonas, soluciones, fitness_vals)  # evaporar + depositar
+            convergencia.append(mejor_fitness)  # guardar para grafica
 
         return {
             "asignacion": mejor_asig, "fitness": mejor_fitness,

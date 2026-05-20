@@ -1,2 +1,2 @@
 # Configuracion de gunicorn para Render
-timeout = 120  #(default: 30)
+timeout = 360 #default: 30

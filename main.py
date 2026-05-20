@@ -237,7 +237,7 @@ def analisis():
         return jsonify({"error": "Sin tareas"}), 400
 
     n = len(caps)
-    n_corridas = 10
+    n_corridas = 5
 
     # Escalar segun cantidad de tareas para evitar timeout en Render
     if total <= 30:
@@ -288,7 +288,7 @@ def analisis():
             'par': f'{a} vs {b}',
             'prueba': prueba,
             'p_valor': round(float(pv), 6),
-            'significativo': pv < 0.05,
+            'significativo': bool(pv < 0.05),
             'mejor': ganador if pv < 0.05 else None,
         })
 
@@ -315,13 +315,13 @@ def sensibilidad():
         iteraciones = [30, 60, 100, 150, 200]
         it_fijo, pob_fija = 80, 60
     elif total <= 60:
-        poblaciones = [20, 40, 60, 80]
-        iteraciones = [30, 60, 80, 100]
-        it_fijo, pob_fija = 50, 40
-    else:
         poblaciones = [20, 40, 60]
-        iteraciones = [20, 40, 60]
-        it_fijo, pob_fija = 30, 30
+        iteraciones = [30, 60, 80]
+        it_fijo, pob_fija = 40, 40
+    else:
+        poblaciones = [20, 40]
+        iteraciones = [20, 40]
+        it_fijo, pob_fija = 20, 20
 
     try:
         # Variacion de poblacion (iteraciones fijas)

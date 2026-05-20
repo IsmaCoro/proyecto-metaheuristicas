@@ -26,14 +26,17 @@ class AlgoritmoGenetico:
         return pob
 
     def _seleccion_torneo(self, poblacion, fitness_vals):
-        candidatos = random.sample(range(len(poblacion)), self.tam_torneo)
-        ganador = min(candidatos, key=lambda i: fitness_vals[i])
-        return poblacion[ganador][:]
+        # Elige 5 al azar, gana el de menor fitness
+        candidatos = random.sample(range(len(poblacion)), self.tam_torneo)  # 5 indices al azar
+        ganador = min(candidatos, key=lambda i: fitness_vals[i])  # el de menor fitness gana
+        return poblacion[ganador][:]  # retorna copia del ganador
 
     def _cruce_uniforme(self, p1, p2):
+        # Para cada gen, toma al azar del padre 1 o padre 2
         return [a if random.random() < 0.5 else b for a, b in zip(p1, p2)]
 
     def _mutar(self, ind):
+        # Cada gen tiene 15% de prob de cambiar a un servidor al azar
         for i in range(len(ind)):
             if random.random() < self.prob_mutacion:
                 ind[i] = random.randint(0, self.problema.n_servidores - 1)
@@ -41,13 +44,15 @@ class AlgoritmoGenetico:
 
     def ejecutar(self):
         inicio = time.time()
-        poblacion = self._crear_poblacion()
-        mejor_global, mejor_fitness = None, float('inf')
-        convergencia = []
+        poblacion = self._crear_poblacion()  # 60 soluciones iniciales
+        mejor_global, mejor_fitness = None, float('inf')  # mejor solucion encontrada
+        convergencia = []  # guarda el mejor fitness por generacion (para la grafica)
 
-        for gen in range(self.generaciones):
+        for gen in range(self.generaciones):  # 150 generaciones
+            # Evaluar fitness de los 60 individuos
             fitness_vals = [self.problema.evaluar(ind)["fitness"] for ind in poblacion]
 
+            # Actualizar mejor global
             for i, fit in enumerate(fitness_vals):
                 if fit < mejor_fitness:
                     mejor_fitness = fit
@@ -55,16 +60,17 @@ class AlgoritmoGenetico:
             convergencia.append(mejor_fitness)
 
             # Elitismo: los mejores pasan directo
-            ranking = sorted(range(len(poblacion)), key=lambda i: fitness_vals[i])
-            nueva = [poblacion[i][:] for i in ranking[:self.tam_elite]]
+            ranking = sorted(range(len(poblacion)), key=lambda i: fitness_vals[i])  # ordenar de mejor a peor
+            nueva = [poblacion[i][:] for i in ranking[:self.tam_elite]]  # top 3 pasan directo
 
-            while len(nueva) < self.tam_poblacion:
-                p1 = self._seleccion_torneo(poblacion, fitness_vals)
-                p2 = self._seleccion_torneo(poblacion, fitness_vals)
-                hijo = self._cruce_uniforme(p1, p2) if random.random() < self.prob_cruce else p1[:]
-                nueva.append(self._mutar(hijo))
+            # Generar hijos con seleccion, cruce y mutacion
+            while len(nueva) < self.tam_poblacion:  # llenar los 57 huecos
+                p1 = self._seleccion_torneo(poblacion, fitness_vals)  # padre 1 por torneo
+                p2 = self._seleccion_torneo(poblacion, fitness_vals)  # padre 2 por torneo
+                hijo = self._cruce_uniforme(p1, p2) if random.random() < self.prob_cruce else p1[:]  # cruzar 85%
+                nueva.append(self._mutar(hijo))  # mutar y agregar a nueva gen
 
-            poblacion = nueva
+            poblacion = nueva  # reemplazar generacion anterior
 
         return {
             "asignacion": mejor_global, "fitness": mejor_fitness,

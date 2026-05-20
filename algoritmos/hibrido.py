@@ -25,15 +25,17 @@ class HibridoGAACO:
         self.beta = beta
         self.evaporacion = evaporacion
         self.Q = Q
-        self.peso_aco = peso_aco
+        self.peso_aco = peso_aco  # 30% de la poblacion se genera con ACO
 
     def _crear_poblacion(self):
+        # 1 greedy + resto aleatorias
         pob = [self.problema.asignacion_greedy()]
         for _ in range(self.tam_poblacion - 1):
             pob.append(self.problema.asignacion_aleatoria())
         return pob
 
     def _crear_feromonas(self):
+        # Matriz de feromonas [tareas x servidores], inicialmente uniforme
         return np.ones((self.problema.n_tareas, self.problema.n_servidores)) \
                / self.problema.n_servidores
 
@@ -41,34 +43,37 @@ class HibridoGAACO:
         return self.problema.evaluar(asig)["fitness"]
 
     def _seleccion_torneo(self, pob, fits):
-        cands = random.sample(range(len(pob)), self.tam_torneo)
-        return pob[min(cands, key=lambda i: fits[i])][:]
+        # Igual que en el GA: elige 5 al azar, gana el mejor
+        cands = random.sample(range(len(pob)), self.tam_torneo)  # 5 indices al azar
+        return pob[min(cands, key=lambda i: fits[i])][:]  # gana el de menor fitness
 
     def _cruce_uniforme(self, p1, p2):
+        # Igual que en el GA: mezcla genes 50/50
         return [a if random.random() < 0.5 else b for a, b in zip(p1, p2)]
 
     def _mutacion_guiada(self, ind, feromonas):
-        # Diferencia clave: en vez de mutar al azar, usa feromonas
+        # DIFERENCIA CLAVE vs GA: en vez de mutar al azar, usa feromonas
         for i in range(len(ind)):
             if random.random() < self.prob_mutacion:
-                probs = feromonas[i] ** self.alfa
+                probs = feromonas[i] ** self.alfa  # probabilidades segun feromona
                 total = probs.sum()
                 if total > 0:
-                    probs = probs / total
-                    ind[i] = int(np.random.choice(range(self.problema.n_servidores), p=probs))
+                    probs = probs / total  # normalizar
+                    ind[i] = int(np.random.choice(range(self.problema.n_servidores), p=probs))  # muta hacia servidor con mas feromona
                 else:
                     ind[i] = random.randint(0, self.problema.n_servidores - 1)
         return ind
 
     def _construccion_aco(self, feromonas):
+        # Construye una solucion tipo hormiga (igual que en ColoniaHormigas)
         asig = []
         carga = [0] * self.problema.n_servidores
         for i in range(self.problema.n_tareas):
             probs = []
             for j in range(self.problema.n_servidores):
-                tau = feromonas[i][j] ** self.alfa
-                libre = max(0.01, self.problema.servidores[j]["cpu_total"] - carga[j])
-                eta = (libre / self.problema.servidores[j]["cpu_total"]) ** self.beta
+                tau = feromonas[i][j] ** self.alfa  # feromona
+                libre = max(0.01, self.problema.servidores[j]["cpu_total"] - carga[j])  # espacio libre
+                eta = (libre / self.problema.servidores[j]["cpu_total"]) ** self.beta  # heuristica
                 probs.append(tau * eta)
             total = sum(probs)
             if total == 0:
@@ -81,10 +86,10 @@ class HibridoGAACO:
         return asig
 
     def _actualizar_feromonas(self, feromonas, pob, fits):
-        # Solo los mejores depositan feromonas (elitismo)
-        feromonas *= (1 - self.evaporacion)
-        ranking = sorted(range(len(pob)), key=lambda i: fits[i])
-        for idx in ranking[:self.tam_elite]:
+        # Solo los top 5 depositan feromonas (elitismo en feromonas)
+        feromonas *= (1 - self.evaporacion)  # evaporar 30%
+        ranking = sorted(range(len(pob)), key=lambda i: fits[i])  # ordenar por fitness
+        for idx in ranking[:self.tam_elite]:  # solo top 5 depositan
             if fits[idx] > 0:
                 dep = self.Q / fits[idx]
                 for i, srv in enumerate(pob[idx]):
@@ -92,7 +97,7 @@ class HibridoGAACO:
         return feromonas
 
     def _busqueda_local(self, asig):
-        # Mueve tareas del servidor más cargado al menos cargado
+        # Mueve tareas del servidor mas cargado al menos cargado
         mejor = asig[:]
         mejor_fit = self._fitness(mejor)
 
@@ -100,8 +105,8 @@ class HibridoGAACO:
             met = self.problema.evaluar(mejor)
             pcts = [met["carga_cpu"][j] / self.problema.servidores[j]["cpu_total"]
                     for j in range(self.problema.n_servidores)]
-            mas = max(range(len(pcts)), key=lambda j: pcts[j])
-            menos = min(range(len(pcts)), key=lambda j: pcts[j])
+            mas = max(range(len(pcts)), key=lambda j: pcts[j])  # servidor mas cargado
+            menos = min(range(len(pcts)), key=lambda j: pcts[j])  # servidor menos cargado
             if mas == menos:
                 break
 
@@ -110,7 +115,7 @@ class HibridoGAACO:
                 break
 
             nuevo = mejor[:]
-            nuevo[random.choice(tareas_en_mas)] = menos
+            nuevo[random.choice(tareas_en_mas)] = menos  # mover una tarea al menos cargado
             nuevo_fit = self._fitness(nuevo)
             if nuevo_fit < mejor_fit:
                 mejor, mejor_fit = nuevo, nuevo_fit
@@ -126,38 +131,42 @@ class HibridoGAACO:
         convergencia = []
 
         for gen in range(self.n_iteraciones):
-            fits = [self._fitness(ind) for ind in poblacion]
+            fits = [self._fitness(ind) for ind in poblacion]  # evaluar los 80 individuos
 
+            # Actualizar mejor global
             for i, fit in enumerate(fits):
                 if fit < mejor_fitness:
                     mejor_fitness = fit
                     mejor_global = poblacion[i][:]
             convergencia.append(mejor_fitness)
 
+            # Actualizar feromonas con elitismo
             feromonas = self._actualizar_feromonas(feromonas, poblacion, fits)
 
+            # Elitismo: top 5 pasan directo
             ranking = sorted(range(len(poblacion)), key=lambda i: fits[i])
             nueva = [poblacion[i][:] for i in ranking[:self.tam_elite]]
 
-            # 70% GA con mutación guiada + 30% ACO
+            # 70% GA con mutacion guiada por feromonas
             n_ga = int((self.tam_poblacion - self.tam_elite) * (1 - self.peso_aco))
             for _ in range(n_ga):
                 p1 = self._seleccion_torneo(poblacion, fits)
                 p2 = self._seleccion_torneo(poblacion, fits)
                 hijo = self._cruce_uniforme(p1, p2) if random.random() < self.prob_cruce else p1[:]
-                nueva.append(self._mutacion_guiada(hijo, feromonas))
+                nueva.append(self._mutacion_guiada(hijo, feromonas))  # mutacion inteligente (no al azar)
 
+            # 30% construccion tipo ACO
             for _ in range(self.tam_poblacion - len(nueva)):
                 nueva.append(self._construccion_aco(feromonas))
 
-            # Búsqueda local periódica
+            # Busqueda local cada 20 generaciones
             if gen % 20 == 0 and gen > 0:
                 idx = min(range(len(nueva)), key=lambda i: self._fitness(nueva[i]))
                 nueva[idx] = self._busqueda_local(nueva[idx])
 
-            poblacion = nueva
+            poblacion = nueva  # reemplazar generacion
 
-        # Refinamiento final
+        # Refinamiento final del mejor resultado
         mejor_global = self._busqueda_local(mejor_global)
         mejor_fitness = self._fitness(mejor_global)
 
